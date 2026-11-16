@@ -474,6 +474,104 @@ Object.assign(T_EN,{'Single coil':'Single coil (bright)','Humbucker':'Humbucker 
   'Opnieuw genereren':'Redraw','Laatst geopende kop':'Standard head','balans':'balance','Kop en render':'Head and colour'});
 Object.assign(T_EN,{'Gitaar':'Guitar','Bas':'Bass','Rechtshandig':'Right-handed','Linkshandig':'Left-handed','Wat bouw je?':'What are you building?','Hoe speel je?':'How do you play?','Kies een vormfamilie':'Pick a shape family','Nieuwe voorstellen in deze familie':'New proposals in this family','Enkele cutaway':'Single cut','Dubbele cutaway':'Double cut','Halfhol':'Semi-hollow','Offset':'Offset','Superstrat':'Superstrat','Hoekig':'Angular','Retro':'Retro','Natuur en architectuur':'Nature and architecture','Vormfamilie':'Shape family','Alle':'All',
  'Één uitsparing, vol lichaam: Les Paul, Telecaster, Junior.':'One cutaway, full body: Les Paul, Telecaster, Junior.','Twee hoorns: Strat, SG, PRS, Mustang.':'Two horns: Strat, SG, PRS, Mustang.','Verschoven hoorns, surf en indie: Jazzmaster, Jaguar, Mustang.':'Offset horns, surf and indie: Jazzmaster, Jaguar, Mustang.','Strak, ergonomisch, hoge frets: Ibanez, Music Man, Washburn.':'Sleek, ergonomic, high frets: Ibanez, Music Man, Washburn.','Scherpe lijnen: Explorer, V, Firebird, Moderne.':'Sharp lines: Explorer, V, Firebird, Moderne.','Halfholle klassiekers: ES, L-5, Rickenbacker, Gretsch.':'Semi-hollow classics: ES, L-5, Rickenbacker, Gretsch.','Vijftiger en zestiger jaren: Danelectro, Gretsch, Epiphone, Mosrite.':'Fifties and sixties: Danelectro, Gretsch, Epiphone, Mosrite.','Blad, schelp, golf, gotische boog, art deco.':'Leaf, shell, wave, Gothic arch, art deco.','Alle families door elkaar. Kies een familie voor vormen die bij elkaar horen.':'All families mixed. Pick a family for shapes that belong together.','Pickguard':'Pickguard'});
+// 16/11/2026 (avond): Engels volledig. Teksten die nog Nederlands bleven in de EN-versie; enkel T_EN, het Nederlands blijft zoals het was.
+Object.assign(T_EN,{
+ // beginscherm
+ 'Kies je vormfamilie en een vertrekpunt. Daarna boetseer je de vorm met je vinger, kies je een kop en een kleur, en bekijk je de hele gitaar.':'Pick a shape family and a starting point. Then sculpt the shape with your finger, choose a head and a colour, and see the whole guitar.',
+ '✨ Nieuwe voorstellen in deze familie':'✨ New proposals in this family','Één uitsparing, vol lichaam: Les Paul, Telecaster, Les Paul Junior.':'One cutaway, full body: Les Paul, Telecaster, Les Paul Junior.','Twee hoorns: Strat, SG, PRS, Melody Maker.':'Two horns: Strat, SG, PRS, Melody Maker.',
+ // instrument en vorm
+ 'Grotere body (basmaat)':'Bigger body (bass size)','Groter en in balans voor een lange basmensuur':'Bigger and balanced for a long bass scale','Aan: tik om terug te gaan naar de vorige maat':'On: tap to go back to the previous size',
+ 'Optioneel: de body wordt groter en schuift naar de beste balans (ook bij een gitaar, om mee te experimenteren)':'Optional: the body gets bigger and moves to the best balance (also on a guitar, to experiment with)',
+ 'Symmetrisch':'Symmetrical','Slepen: punt ↔ klei':'Dragging: point ↔ clay','Tik een punt aan om het exact in te stellen, of stuur de ronding met de blauwe handgrepen. Dubbeltik op de lijn voor een nieuw punt.':'Tap a point to set it exactly, or steer the curve with the blue handles. Double-tap the line for a new point.',
+ 'De hardware kies je in deze volgorde. Elke stap houdt rekening met de stappen erboven; verander je iets bovenaan, dan schuift wat eronder automatisch mee.':'You choose the hardware in this order. Each step takes the steps above it into account; change something at the top and what is below moves along automatically.',
+ // hals en mensuur
+ 'Hals en mensuur':'Neck and scale','Legt vast waar de frets en het einde van de toets liggen. Daar mogen geen pickups komen.':'Sets where the frets and the end of the fretboard are. No pickups may go there.','Mensuur':'Scale length','Mensuur in inch':'Scale length in inches','Gekende mensuur':'Known scale length','eigen maat':'custom length',
+ '30″ (korte bas)':'30″ (short bass)','27″ (bariton)':'27″ (baritone)','34″ (bas)':'34″ (bass)','Aantal frets':'Number of frets','Body begint bij':'Body starts at','de body schuift, de brug blijft':'the body moves, the bridge stays','Traditioneel:':'Traditional:','Ideaal voor de balans:':'Ideal for balance:','Zet zo':'Set it like this',
+ 'Hals loopt tot':'Neck runs to','Halsdiepte zelf kiezen':'Choose the neck depth yourself','Toets loopt tot':'Fretboard runs to','5 mm voorbij die fret':'5 mm past that fret',
+ // brug, pickups, pickguard
+ 'Geen / later':'None / later','De brug ligt op het zadel (nulpunt). De pickups komen tussen de brug en het einde van de toets.':'The bridge sits on the saddle (zero point). The pickups go between the bridge and the end of the fretboard.',
+ 'Volgt de pickups en de brug. Kies je knoppen op de pickguard, dan groeit hij mee tot onder de knoppen.':'Follows the pickups and the bridge. Put the knobs on the pickguard and it grows to reach under them.',
+ 'Afstand tot de rand':'Distance to the edge','Onderkant (boven het zadel)':'Lower end (above the saddle)','Onderkant schuin (+ baskant hoger)':'Lower end slanted (+ bass side higher)','Onderkant hol (+) of bol (−)':'Lower end concave (+) or convex (−)','Breder (+) of smaller':'Wider (+) or narrower',
+ 'Schroefgaten':'Screw holes','Vorm aanpassen':'Edit the shape','Volgt de body automatisch tot je de vorm aanpast.':'Follows the body automatically until you edit the shape.',
+ // hout, dikte, kamers
+ 'Hout en kamers':'Wood and chambers','Voor gewicht en balans. De kamers bepalen waar klankgaten echt iets doen.':'For weight and balance. The chambers decide where sound holes really do something.','Massief':'Solid','Geen kamers':'No chambers','Rand 20 mm, middenblok 80 mm, vleugels hol':'20 mm rim, 80 mm centre block, hollow wings',
+ 'Dikte':'Thickness','(ruwe keuze, daaronder fijn bij te stellen)':'(rough choice, fine-tune below)','Dun':'Thin','Normaal':'Normal','Dik':'Thick',
+ '± 35 mm, zoals een SG of Explorer: licht en dicht tegen je lijf':'± 35 mm, like an SG or Explorer: light and close to your body','± 45 mm, zoals een Strat, Tele of ES-335':'± 45 mm, like a Strat, Tele or ES-335','± 50 mm, zoals een Les Paul: meer massa en hout':'± 50 mm, like a Les Paul: more mass and wood',
+ 'Bodyhout':'Body wood','Moeras-essen (swamp ash)':'Swamp ash','Essen (hard)':'Ash (hard)','Linde (basswood)':'Basswood','Ander (eigen waarde)':'Other (own value)','Eigen dichtheid':'Own density',
+ 'Halshout (voor de lijmnaad)':'Neck wood (for the glue joint)','Zelfde als de body':'Same as the body','Multi-lam vuren / grenen / els':'Multi-lam spruce / pine / alder','Vuren':'Spruce','Grenen':'Pine','Els':'Alder','Linde':'Basswood','Essen':'Ash','Moeras-essen':'Swamp ash',
+ // klankgaten
+ 'Boven de kamer, vrij van pickups, brug en pickguard. Eerst gespiegeld; lukt dat niet, dan één aan de vrije kant.':'Above the chamber, clear of pickups, bridge and pickguard. Mirrored first; if that does not work, one on the free side.',
+ 'Een andere maat, breedte en kanteling, altijd binnen wat goed te bouwen is':'Another size, width and tilt, always within what builds well',
+ 'Tekst in morse':'Text in Morse','Meegolven met de rand':'Follow the edge','Recht':'Straight','Half mee':'Halfway','Volgt de rand':'Follows the edge','Kanteling':'Tilt','Welke kant':'Which side','Beide':'Both','Plaats':'Position',
+ 'Automatisch (naast de pickups, vrij van alles)':'Automatic (next to the pickups, clear of everything)','Verspringend: bas hoger, diskant lager':'Staggered: bass side higher, treble side lower','Vrij: zelf de plek kiezen':'Free: choose the spot yourself',
+ 'Naar buiten (+) of binnen':'Outward (+) or inward','Omhoog (+) of omlaag':'Up (+) or down','Afstand tot de middellijn':'Distance to the centre line','Hoogte boven het zadel':'Height above the saddle',
+ // knoppen, schakelaar, jack, riemknoppen
+ 'Komen als laatste: ze zoeken plaats rond pickups, brug, klankgaten en (als je dat kiest) op de pickguard.':'They come last: they look for room around the pickups, bridge, sound holes and (if you choose so) on the pickguard.',
+ 'Terug naar het idee':'Back to the idea','Vanzelf (beste plek)':'Automatic (best spot)','Zelf gekozen':'Chosen by you','Sleep de schakelaar op de tekening om hem te verplaatsen.':'Drag the switch on the drawing to move it.',
+ 'Een schuifschakelaar vraagt 34,9 mm diepte; bij deze dikte blijft er te weinig bodem. Het is een tuimelschakelaar geworden.':'A blade switch needs 34.9 mm of depth; at this thickness too little wood is left underneath. It has become a toggle switch.',
+ 'Op de plaat, vooraan':'On the plate, at the front','Zelf versleept, binnen de veilige zone.':'Dragged by you, within the safe zone.','geen gemeten voorbeeld':'no measured example',
+ 'In de zijkant':'In the side','Op de top (cup of plaat)':'On the top (cup or plate)','Op de top':'On the top','Elke knop apart slepen':'Drag each knob separately','Bovenste riemknop':'Upper strap button','Ideaal':'Ideal','Traditioneel':'Traditional',
+ // kop en kleur
+ 'Welke kop bij deze body hoort, en hoe de hele gitaar eruitziet.':'Which head goes with this body, and how the whole guitar looks.','Zoals het origineel':'Like the original',
+ 'Je hebt posts zelf versleept. "Opnieuw plaatsen" zet ze terug op de ideale plek.':'You moved the posts yourself. "Place again" puts them back in the ideal spot.','Opnieuw plaatsen':'Place again',
+ 'naar de mechanieken':'to the tuners','links':'left','rechts':'right','De kop (achter de nut)':'The head (behind the nut)','De hiel (body-kant)':'The heel (body side)',
+ 'Snaar achter de nut':'String behind the nut','Lengte vanaf nut':'Length from the nut','Breedte max.':'Max. width','Breedte bij nut':'Width at the nut','Kleinste rand rond boorgat':'Smallest edge around a hole','Grootste snaarknik na de nut':'Largest string bend after the nut','Hals bij de nut':'Neck at the nut',
+ 'Nulpunt (y = 0) is de nut. De kop loopt naar boven.':'Zero point (y = 0) is the nut. The head runs upward.','Maten van dit mechaniektype':'Measurements of this tuner type','Gat tot rand':'Hole to edge','Behuizing: breedte':'Housing: width','Behuizing: lengte tot knop':'Housing: length to knob',
+ 'Regels (nagemeten op 14 echte koppen): alle gaten even ver van de rand (11 à 14 mm), snaar zo recht mogelijk van nut naar post, geen snaar tegen een andere post. Grijs gestippeld = behuizing achteraan.':'Rules (measured on 14 real heads): all holes equally far from the edge (11 to 14 mm), each string as straight as possible from nut to post, no string against another post. Grey dotted = housing at the back.',
+ // samenvatting en technische details (Werkbank-niveau, in Forma verborgen)
+ 'De queeste':'The quest','Halsverbinding':'Neck joint','Stemmen':'Tuning','Nut bereiken':'Reaching the nut','Gewicht':'Weight','Eigenheid':'Own voice','🎯 Verbeter dit ontwerp':'🎯 Improve this design','blijft liggen':'stays put','ligt rustig op je been':'rests calmly on your leg',
+ 'Open de kop om de snaartrek te verbeteren.':'Open the head to improve the string pull.','✔ Bouwbaar: niets botst, genoeg hout rond gaten en frezingen.':'✔ Buildable: nothing collides, enough wood around holes and routes.',
+ 'Technische details':'Technical details','Maten':'Measurements','Lengte totaal':'Total length','Breedte totaal':'Total width','Links / rechts van middellijn':'Left / right of the centre line','Oppervlakte · omtrek':'Area · perimeter','Zadel → onderkant body':'Saddle → bottom of the body','Hoorns reiken tot fret (bas · diskant)':'Horns reach to fret (bass · treble)',
+ 'Oranje velden kun je aanpassen: de vorm schaalt of schuift mee.':'You can change the orange fields: the shape scales or moves along.','Hals & snaren':'Neck & strings','Aantal snaren':'Number of strings','Halsbreedte bij nut':'Neck width at the nut','Halsbreedte bij laatste fret':'Neck width at the last fret',
+ 'Snaarafstand nut (buitenste)':'String spacing at the nut (outer)','Snaarafstand brug (buitenste)':'String spacing at the bridge (outer)','Nulpunt (y = 0) is de zadellijn van de brug.':'Zero point (y = 0) is the saddle line of the bridge.','Aantal knoppen':'Number of knobs','Knopdiameter':'Knob diameter',
+ 'Weergave, achtergrond & back-up':'View, background & backup','Raster':'Grid','Maatlijnen':'Dimension lines','Frezingen en kanalen':'Routes and channels','Hals met frets':'Neck with frets','Hele gitaar (met kop)':'Whole guitar (with head)','Snaren':'Strings','Breedte meten waar je wijst':'Measure the width where you point','Punten op hele mm vastklikken':'Snap points to whole mm',
+ 'Vergelijk met':'Compare with','— niets —':'— nothing —','Achtergrond (schets of foto)':'Background (sketch or photo)','Afbeelding laden…':'Load image…','Laad een schets of foto om over te tekenen, en kalibreer op een gekende maat.':'Load a sketch or photo to trace over, and calibrate on a known measurement.','Bewaren ↓':'Save ↓','Inladen ↑':'Load ↑',
+ 'Om ontwerpen van je laptop naar je iPhone te brengen: bewaar hier een back-up en laad die op het andere toestel in.':'To move designs from your laptop to your phone: save a backup here and load it on the other device.',
+ // werkbalk (Werkbank-knoppen, in Forma verborgen)
+ '🧩 Hoeken mengen':'🧩 Mix corners','Combineer tot 4 vormen, één per hoek':'Combine up to 4 shapes, one per corner','🖼 Achtergrond':'🖼 Background','Mallen als STL, in stukken voor je printerbed':'Templates as STL, in pieces for your print bed',
+ 'Alles op ware grootte (mm), elke laag apart: omtrek, frezingen, gaten, pickguard':'Everything at full size (mm), each layer separate: outline, routes, holes, pickguard','Sleep om een afstand te meten':'Drag to measure a distance','Sleep de achtergrondafbeelding':'Drag the background image',
+ // Inspirator
+ 'Zet minstens één bron aan.':'Switch on at least one source.',
+ // stappen terug en vooruit
+ 'Naam':'Name','Achtergrond':'Background','Riemknop':'Strap button','Elementen':'Pickups','Hals en snaren':'Neck and strings','Kamers':'Chambers','Halshout':'Neck wood','Aanpassing':'Change','Nu':'Now','net nu':'just now','Tik op een stap om ernaar terug te gaan':'Tap a step to go back to it','Opnieuw gedaan':'Redone',
+ 'Vorm: punt erbij':'Shape: point added','Vorm: punt weg':'Shape: point removed','Vorm: lijn ronder':'Shape: rounder line','Vorm: lijn strakker':'Shape: tighter line','Vorm: lijn bijgewerkt':'Shape: line updated',
+ // meldingen
+ 'Gitaar: 6 snaren':'Guitar: 6 strings','Bas: 34″ mensuur, 4 snaren, basbrug, -pickups en -mechanieken':'Bass: 34″ scale, 4 strings, bass bridge, bass pickups and bass tuners','Bas: kies “Gebruik als startpunt”, dan wordt deze vorm een bas':'Bass: tap “Use as starting point” and this shape becomes a bass',
+ 'Referentiekop: tik op Gebruik als startpunt om hem aan te passen':'Reference head: tap Use as starting point to change it','Geen variatie die past':'No variation that fits','Deze combinatie geeft geen nette kop. Kies vormen uit dezelfde familie.':'This combination does not make a clean head. Pick shapes from the same family.',
+ 'Alle posts passen al':'All posts already fit','Daar staat geen ontwerp in':'There is no design in it','Afbeelding geladen. Kalibreer nu op een gekende maat.':'Image loaded. Now calibrate on a known measurement.','Laad eerst een achtergrondafbeelding (paneel rechts, onderaan)':'Load a background image first (right panel, at the bottom)',
+ 'Schaal ingesteld':'Scale set','Er is geen pickguard om te exporteren':'There is no pickguard to export','Pickguard op ware grootte gedownload':'Pickguard downloaded at full size','SVG op ware grootte gedownload (elke laag apart)':'SVG downloaded at full size (each layer separate)',
+ // oude vormnamen die in bewaarde ontwerpen kunnen staan
+ 'Forma-vorm':'Forma shape',// meldingen bij het slepen (⛔) en de werkbalkhulp
+ 'valt (bijna) buiten de body':'falls (almost) outside the body','raakt de brug':'touches the bridge','loopt in de halsvoet':'runs into the neck heel','zit onder de toets':'sits under the fretboard','ligt buiten de body':'is outside the body','raakt de ronde opening':'touches the round opening','raakt de hals':'touches the neck','te dicht bij een klankgat':'too close to a sound hole','ligt buiten de kop':'is outside the head','raakt de spanstaaf-toegang':'touches the truss rod access',
+ 'Kalibreren: klik 2 punten op de afbeelding waarvan je de afstand kent':'Calibrate: click 2 points on the image whose distance you know','Meten: sleep van punt A naar punt B':'Measure: drag from point A to point B','Achtergrond: sleep om de afbeelding te verplaatsen':'Background: drag to move the image','Esc = terug naar bewerken':'Esc = back to editing',
+ 'Lange hoorn':'Long horn','Zachte offset':'Soft offset','Vlotte S':'Easy S','Golvende dubbele cutaway':'Flowing double cut'});
+// bronnen in de Inspirator, zonder merknamen (zoals in het Nederlands)
+const SRC_EN={'Strat, Les Paul, SG…':'S-style, single cut, double horn…','blad, schelp, golf…':'leaf, shell, wave…','gotische en Romaanse boog, art deco…':'Gothic and Romanesque arch, art deco…','Explorer, Firebird, Iceman…':'angular, reverse, hook…','van een foto overgetekend, minder juist: Gesneden kop, Asymmetrisch, Haak':'traced from a photo, less exact: carved head, asymmetric, hook'};
+T_RULES.forEach((r,i)=>{ const s=String(r[0]); if(s==='/^Teruggedraaid: (.+)$/') T_RULES[i]=[r[0],m=>'Undone: '+tr(m[1])]; if(s==='/^Opnieuw: (.+)$/') T_RULES[i]=[r[0],m=>'Redone: '+tr(m[1])]; });
+T_RULES.push(
+  [/^\((.+)\)([.,])( Je eigen ontwerpen doen altijd mee\.)?$/, m=>SRC_EN[m[1]]?'('+SRC_EN[m[1]]+')'+m[2]+(m[3]?' Your own designs always take part.':''):m[0]],
+  [/^(.+): past hier niet$/, m=>tr(m[1])+': does not fit here'],
+  [/^(\d+) knop$/, m=>m[1]+' knob'],
+  [/^Vorm: (breedte|lengte) (.+)$/, m=>'Shape: '+(m[1]==='breedte'?'width ':'length ')+m[2]],
+  [/^(\d+) stappen teruggedraaid$/, m=>m[1]+' steps undone'],
+  [/^(\d+) uur$/, m=>m[1]+' h'],
+  [/^Je bewerkt de kop van (.+)$/, m=>'You are editing the head of '+tr(m[1])],
+  [/^Opbouw: (.+)$/, m=>'Layout: '+tr(m[1])],
+  [/^Body begint nu bij fret (.+)$/, m=>'Body now starts at fret '+m[1]],
+  [/^(\d+) post\(s\) verschoven naar de dichtstbijzijnde plek die past$/, m=>m[1]+' post(s) moved to the nearest spot that fits'],
+  [/^(\d+) ontwerpen ingeladen$/, m=>m[1]+' designs loaded'],
+  [/^Variatie: (.+)$/, m=>'Variation: '+tr(m[1])],
+  [/^Mijn bas naar (.+?)( \d+)?$/, m=>'My '+tr(m[1])+' bass'+(m[2]||'')],
+  [/^Mijn (.+)$/, m=>'My '+tr(m[1])],
+  [/^(.+) \(kopie( \d+)?\)$/, m=>tr(m[1])+' (copy'+(m[2]||'')+')'],
+  [/^⛔ (.+)$/, m=>'⛔ '+tr(m[1])],
+  [/^te dicht bij de (brug|midden|hals)pickup( \(min\. 3 mm hout\))?$/, m=>'too close to the '+{brug:'bridge',midden:'middle',hals:'neck'}[m[1]]+' pickup'+(m[2]?' (min. 3 mm of wood)':'')],
+  [/^te dicht bij (knop \d+|de schakelaar|de jack)( \((.+) mm, min\. (.+)\))?$/, m=>'too close to '+(m[1]==='de schakelaar'?'the switch':m[1]==='de jack'?'the jack':m[1].replace('knop','knob'))+(m[2]?' ('+m[3]+' mm, min. '+m[4]+')':'')],
+  [/^te dicht bij de rand \((.+) mm hout, min\. 4,8\)$/, m=>'too close to the edge ('+m[1]+' mm of wood, min. 4.8)'],
+  [/^te dicht bij de rand \((.+) mm, min\. (.+)\)$/, m=>'too close to the edge ('+m[1]+' mm, min. '+m[2]+')'],
+  [/^te dicht bij post (\d+) \((.+) mm, min\. (.+)\)$/, m=>'too close to post '+m[1]+' ('+m[2]+' mm, min. '+m[3]+')'],
+  [/^Forma-vorm (\d+)$/, m=>'Forma shape '+m[1]],
+  [/^(.+?) (\d+)$/, m=>{ const v=tr(m[1]); return v===m[1]?m[0]:v+' '+m[2]; }]);
 function tr(s){ if(!LIGHT||s==null) return s; const k=String(s).trim(); if(!k) return s; const D=EN?T_EN:T_NL; let v=D[k];
   if (v==null) v=(EN?NAME_NL2EN:NAME_EN2NL)[k];
   if (v==null){ for (const [re,f] of (EN?T_RULES:T_RULES_NL)){ const m=k.match(re); if(m){ v=f(m); break; } } }
@@ -3467,8 +3565,8 @@ $('#modal').addEventListener('change',e=>{ if(e.target.dataset.m==='wild') rollI
 // ================= render: de hele gitaar als beeld =================
 const WOOD_COL={vuren:'#e3c9a0',grenen:'#dcb27a',els:'#d6ab7f',essen:'#d9bd8f',essen2:'#d2b385',mahonie:'#8e4c2b',okoume:'#b47e58',linde:'#e4cca2',walnoot:'#674530',esdoorn:'#e6cb98',paulownia:'#dbc199',ander:'#c49c6c'};
 // Sixto-afwerkingen eerst: een levendige, doorschijnende tint op vuren of grenen, de nerf blijft zichtbaar, de afgeronde rand blijft hout (Tignum, Rupes, Loculus)
-const FINISH={tgroen:['Groen getint, zoals Sixto Tignum','#1f9a5f','t'],tpaars:['Paars getint, zoals Sixto Rupes','#6a3896','t'],tpruim:['Pruim getint, zoals Sixto Loculus','#a1458a','t'],
-  // 16/11 (Tom): Sixto see-through = Toms eigen epoxypigmenten (23 kleuren). Geen mica in de render.
+const FINISH={tgroen:['Sixto see-through · Tignum green','#1f9a5f','t'],tpaars:['Sixto see-through · Rupes purple','#6a3896','t'],tpruim:['Sixto see-through · Loculus plum','#a1458a','t'],
+  // 16/11 (Tom): Sixto see-through = Toms eigen epoxypigmenten (23 kleuren), samen met de drie stains van de Sixto-builds hierboven (één naam, 16/11 avond). Geen mica in de render.
   stred:['Sixto see-through · Red','#c2262a','t'],stpeach:['Sixto see-through · Peach','#e63a6b','t'],strose:['Sixto see-through · Rose','#9a1f66','t'],stcherry:['Sixto see-through · Cherry','#6a1f3a','t'],storange:['Sixto see-through · Orange','#e8741a','t'],stmango:['Sixto see-through · Mango','#e5a01a','t'],stlemon:['Sixto see-through · Lemon','#e8c81c','t'],stlime:['Sixto see-through · Lime','#5cb82a','t'],stgreen:['Sixto see-through · Green','#1f8a5a','t'],stkiwi:['Sixto see-through · Kiwi','#1f7a3a','t'],stjade:['Sixto see-through · Jade','#1f6b44','t'],stclover:['Sixto see-through · Clover','#1f8a82','t'],stteal:['Sixto see-through · Teal','#1a6e86','t'],stsky:['Sixto see-through · Sky','#2f78b8','t'],stblue:['Sixto see-through · Blue','#1f45a8','t'],stnavy:['Sixto see-through · Navy','#1c2a68','t'],stviolet:['Sixto see-through · Violet','#3a2a8a','t'],stpurple:['Sixto see-through · Purple','#5b2a8a','t'],stgrape:['Sixto see-through · Grape','#4a2a7a','t'],stcaramel:['Sixto see-through · Caramel','#8a4a1c','t'],stcoffee:['Sixto see-through · Coffee','#4a2a1c','t'],stblack:['Sixto see-through · Black','#1a1a1c','t'],stwhite:['Sixto see-through · White','#efece2','t'],
   hout:['Hout naturel'],noten:['Notelaar (walnoot)'],burst:['Sunburst'],zwart:['Zwart','#1d1b1a'],wit:['Crème wit','#efe9da'],rood:['Kersenrood','#8f1d1d'],blauw:['Lake blauw','#3f6f8f'],groen:['Sherwood groen','#3d5a45'],goud:['Goudtop','#c8a24a']};
 const BOARD={pal:['Palissander','#4a2c1e'],ebben:['Ebben','#1c1714'],esdoorn:['Esdoorn','#e2c48e']};
