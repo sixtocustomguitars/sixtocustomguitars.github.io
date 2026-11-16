@@ -53,6 +53,7 @@ section h3{font-size:12.5px;margin:10px 0 4px;color:var(--ink)}
 .checks{margin-top:8px;padding:8px;border-radius:8px;background:#f7f4ef;font-size:13px}
 .checks div{padding:2px 0}
 .hint{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+.hint.why p{margin:4px 0}.hint.why:empty{display:none}.hint.why{border-left:3px solid #e2d6c3;padding-left:8px;margin-top:6px}
 .btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
 .tbl th{font-weight:500;color:var(--muted);text-align:left;font-size:12px}
@@ -1161,6 +1162,46 @@ function bodyCtx(d){
 const RH_R=46; // straal ronde pickup-opening, Model 1 op foto: ± 93 mm
 function itemR(it,c){ return it.t==='knob' ? c.knobD/2 : it.t==='sw' ? (c.sw==='toggle3'?8:10) : 11; }
 function itemName(items,i){ const it=items[i]; if(it.t==='knob') return 'knop '+(items.slice(0,i+1).filter(x=>x.t==='knob').length); return it.t==='sw'?'de schakelaar':'de jack'; }
+// ---------- schakelaar (16/11/2026, Tom: verplaatsbaar, ideale plek per vorm, waarom). Bronnen: Kennisboek, deel "Schakelaar". ----------
+// Diepte van het vak, vanaf de top (verkopers/StewMac): tuimel lang (LP) 38,1, kort 23,5, haaks (SG en dunne bodies) 20,6; schuif (Oak Grigsby, CRL) 34,9.
+const SW_DEPTH={toggle3:[['lange tuimelschakelaar',38.1],['korte tuimelschakelaar',23.5],['haakse tuimelschakelaar (zoals een SG)',20.6]],blade3:[['schuifschakelaar',34.9]],blade5:[['schuifschakelaar',34.9]]};
+const SW_FLOOR=6.35;  // Fender-tekening Strat '62: controlevak 1,50" diep in een body van 1,75" = 6,35 mm bodem; kanaal Ø 1/4" = 6,35
+const SW_CAV=21.5;    // plan Les Paul (Catto 2006): vak van de schakelaar Ø 43
+const SW_STR=19;      // aanslagzone: Strat-volume ± 19 mm van de eerste snaar (Dantzig), de krapste echte
+const SW_REF={x:-75.5,dy:38};   // plan Les Paul: 75,5 mm uit het midden, 38 mm vóór de halspickup
+const SW_OPTS={
+  bas:{n:'Bovenste hoorn, baskant',from:'Les Paul, plan Catto 2006',why:'Ver van de aanslaghand: je raakt hem niet bij het spelen, maar je moet ernaar reiken (spelers). Gibson gaf geen reden; Dantzig vermoedt dat de fabriek meer woog dan de speler.'},
+  dis:{n:'Bovenste hoorn, diskant',from:'geen gemeten voorbeeld',why:'Op de hoorn aan de diskantkant, buiten de aanslagzone. Een bron voor het waarom vond ik niet.'},
+  knop:{n:'In lijn met de knoppen',from:'ES-335 en SG Custom (plannen)',why:'Alles in één vak, met een kort kanaal. Op het ES-335-plan naast het f-gat, 93 mm uit het midden en 35 mm achter het zadel.'},
+  pu:{n:'Naast de pickups',from:'Stratocaster',why:'Dicht bij de aanslaghand en mee met haar boog (Dantzig; Fender: bewust zo geplaatst). Spelers raken hem soms bij hard aanslaan.'},
+  plate:{n:'Op de plaat, vooraan',from:'Telecaster',why:'Het dichtst bij de hand, de toon het verst (Dantzig). Wie veel met volume zwelt, draait de plaat om (Fralin).'},
+  zelf:{n:'Zelf gekozen',from:'',why:'Zelf versleept, binnen de veilige zone.'}
+};
+const JACK_OPTS={side:{n:'In de zijkant',from:'Les Paul, Telecaster',why:'De plug steekt opzij uit. De oude Tele-jacks gingen stuk als men op de kabel stapte (Fullerton, Guitar World).'},
+  top:{n:'Op de top',from:'Stratocaster',why:'Schuin in een kuipje: de plug zit minder in de weg (Fullerton, Guitar World).'}};
+function swFit(s){ const L=SW_DEPTH[s.ctrl.sw]; if(!L) return null; const f=L.find(([,dp])=>s.thick-dp>=SW_FLOOR); return f?{n:f[0],dp:f[1],floor:s.thick-f[1]}:null; }
+function strHalf(s,y){ const sb=(s.spBridge||52)/2, sn=(s.spNut||35)/2; return sb+(sn-sb)*Math.max(0,y)/(s.scale||648); }
+function swPocketR(ctx){ return ctx.pocketR||(ctx.pocketR={cx:0,cy:(ctx.pocketEnd+ctx.topY+300)/2,w:Math.max(ctx.s.heelW,2*neckHW(ctx.s,ctx.pocketEnd)),h:ctx.topY+300-ctx.pocketEnd,a:0}); }
+// recht kabelkanaal (zoals op het LP-plan) naar het knoppenvak of een pickupfrezing: door de body met 6,35 mm hout tot de rand, niet door het halsvak
+function swChannel(ctx,items,pos){
+  const inn=ctx.swIn||(ctx.swIn=offsetPoly(ctx.g.poly,SW_FLOOR)), PR=swPocketR(ctx), c=ctx.s.ctrl;
+  const T=[]; items.forEach(o=>{ if(o.t==='knob') T.push({x:o.x,y:o.y,r:o.r||c.knobD/2,to:'het knoppenvak'}); });
+  ctx.pus.forEach(p=>T.push({x:p.route.cx,y:p.route.cy,R:p.route,to:'de '+PUNAME[p.k]+'pickup'}));
+  T.forEach(t=>t.d=Math.hypot(t.x-pos.x,t.y-pos.y)); T.sort((a,b)=>a.d-b.d);
+  for (const t of T){ const n=Math.max(2,Math.ceil(t.d/4)); let ok=true, L=t.d;
+    for (let i=1;i<n;i++){ const f=i/n, p={x:pos.x+(t.x-pos.x)*f,y:pos.y+(t.y-pos.y)*f}; if (f*t.d<SW_CAV*0.6) continue;
+      if (t.R ? rectDist(p,t.R)<0.5 : Math.hypot(p.x-t.x,p.y-t.y)<t.r+2){ L=f*t.d; break; }
+      if (!inside(inn,p) || rectDist(p,PR)<3.2){ ok=false; break; } }
+    if (ok) return {len:L,to:t.to,x:pos.x+(t.x-pos.x)*L/t.d,y:pos.y+(t.y-pos.y)*L/t.d}; }
+  return null;
+}
+function swReason(ctx,items,pos){
+  const s=ctx.s, c=s.ctrl;
+  if (c.sw==='toggle3'){ const e=distToPoly(ctx.g.poly,pos)-SW_CAV; if(e<SW_FLOOR) return `te weinig hout rond het vak (${fmt(Math.max(0,e))} mm, min. ${fmt(SW_FLOOR,2)})`; }
+  if (pos.y>-10 && pos.y<ctx.neckStop){ const g=Math.abs(pos.x)-itemR({t:'sw'},c)-strHalf(s,pos.y); if(g<SW_STR) return `ligt in de aanslagzone (${fmt(Math.max(0,g))} mm van de buitenste snaar, min. ${SW_STR})`; }
+  if (!swChannel(ctx,items,pos)) return 'geen recht kabelkanaal naar de knoppen of een pickup';
+  return '';
+}
 function ctxHoles(ctx){ if(ctx.holes) return ctx.holes; const s=ctx.s; if(!s.sh||s.sh.type==='none'||!ctx.d) return ctx.holes=[];
   return ctx.holes=[].concat(...holePolys(ctx.d).map(h=>h.rings)).map(p=>{ const xs=p.map(q=>q.x), ys=p.map(q=>q.y); return {p,x0:Math.min(...xs),x1:Math.max(...xs),y0:Math.min(...ys),y1:Math.max(...ys)}; }); }
 function itemReason(ctx,items,i,pos){
@@ -1177,6 +1218,7 @@ function itemReason(ctx,items,i,pos){
     for (const b of ctx.br) if (shapeDist(pos,b)<r+2) return 'raakt de brug';
     if (rectDist(pos,ctx.neckRect)<r+3) return 'raakt de hals';
     for (const hz of ctxHoles(ctx)) if (pos.x>hz.x0-r-6&&pos.x<hz.x1+r+6&&pos.y>hz.y0-r-6&&pos.y<hz.y1+r+6&&(inside(hz.p,pos)||hz.p.some(q=>Math.hypot(q.x-pos.x,q.y-pos.y)<r+6))) return 'te dicht bij een klankgat';
+    if (it.t==='sw') return swReason(ctx,items,pos);
   }
   return '';
 }
@@ -1199,13 +1241,13 @@ function puReason(ctx,k,R){
 // De knop die het dichtst bij de hand zit staat 70 à 94 mm van het hoge-E-zadel. Waarom: zie Vormontwerper_Kennisboek.md.
 const KNOB_E=37, KNOB_ROW=44;
 const KNOB_IDEAS={
-  hand:{n:'Bij de hand',min:1,from:'Stratocaster',why:'Volume vooraan bij de aanslaghand, de rest in een boog langs de rand. Goed om te zwellen, maar je kunt hem raken als je hard aanslaat.'},
-  block:{n:'Blok',min:2,from:'Les Paul, ES-335',why:'Twee rijen achter de brug, uit de weg van de aanslaghand. Elke pickup kan zijn eigen volume en toon hebben.'},
-  row:{n:'Langs de rand',min:1,from:'Explorer',why:'Eén rij die de rand volgt, achter de brug. Rustig beeld, de lijn van de body loopt door in de knoppen.'},
-  plate:{n:'Plaat',min:1,from:'Telecaster',why:'Rechte lijn naast de snaren, alles op één plaat die je langs boven kunt losmaken. Geen frezing langs de rug.'},
-  split:{n:'Volume apart',min:2,from:'gedachte van de ES-150',why:'Wat je veel draait staat vooraan, de toon ver weg. Minder kans dat je per ongeluk de toon verdraait.'},
-  tri:{n:'Compact',min:3,from:'latere Flying V',why:'Dicht op elkaar, alles met één handbeweging bereikbaar. Eén kleine frezing, handig op smalle vormen.'},
-  fan:{n:'Waaier',min:3,from:'Rick Turner, Model 1',why:'Een schuine lijn vanaf de brug naar de rand, en één knop erachter. De aanslaghand blijft vrij, ook op een kleine body. Turners eigen reden vond ik niet.'}
+  hand:{n:'Bij de hand',min:1,from:'Stratocaster',why:'Volume vooraan bij de aanslaghand, de rest in een boog langs de rand. Goed om te zwellen, maar je kunt hem raken als je hard aanslaat.',src:'Strat-plan gemeten; Dantzig (Premier Guitar)'},
+  block:{n:'Blok',min:2,from:'Les Paul, ES-335',why:'Twee rijen achter de brug, uit de weg van de aanslaghand. Elke pickup kan zijn eigen volume en toon hebben.',src:'plannen Les Paul \'59 en ES-335 gemeten; Dantzig: eerder fabriek dan speler'},
+  row:{n:'Langs de rand',min:1,from:'Explorer',why:'Eén rij die de rand volgt, achter de brug. Rustig beeld, de lijn van de body loopt door in de knoppen.',src:'Explorer; de reden vond ik niet'},
+  plate:{n:'Plaat',min:1,from:'Telecaster',why:'Rechte lijn naast de snaren, alles op één plaat die je langs boven kunt losmaken. Geen frezing langs de rug.',src:'Dantzig; Fralin (omgekeerde plaat); de Tele-maat is niet nagemeten'},
+  split:{n:'Volume apart',min:2,from:'gedachte van de ES-150',why:'Wat je veel draait staat vooraan, de toon ver weg. Minder kans dat je per ongeluk de toon verdraait.',src:'Dantzig over de ES-150'},
+  tri:{n:'Compact',min:3,from:'latere Flying V',why:'Dicht op elkaar, alles met één handbeweging bereikbaar. Eén kleine frezing, handig op smalle vormen.',src:'latere Flying V-heruitgave; de reden vond ik niet'},
+  fan:{n:'Waaier',min:3,from:'Rick Turner, Model 1',why:'Een schuine lijn vanaf de brug naar de rand, en één knop erachter. De aanslaghand blijft vrij, ook op een kleine body. Turners eigen reden vond ik niet.',src:'Rick Turner, Model 1 op foto'}
 };
 const KNOB_ALIAS={diag:'hand',square:'block'};
 const ideaOf=c=>{ const k=KNOB_ALIAS[c.layout]||c.layout; return KNOB_IDEAS[k]?k:'row'; };
@@ -1252,6 +1294,44 @@ function placeKnobs(d,ctx){
   let idea=ideaOf(c); if(n<KNOB_IDEAS[idea].min) idea=KNOB_IDEAS.block.min<=n&&idea==='tri'?'block':'row';
   return (c.vr&&knobLayout(d,ctx,idea,c.vr))||knobLayout(d,ctx,idea,null)||knobLayout(d,ctx,idea,{k:1,e:-8,s:0,rot:0})||knobLayout(d,ctx,idea,{k:0.88,e:-10,s:0,rot:0});
 }
+// beste plek per vorm (16/11): per optie een zoekgebied en een vertrekpunt uit een gemeten gitaar; binnen het gebied de plek met het meeste hout rondom.
+const SW_ORDER={toggle3:['bas','dis','knop','pu'],blade:['pu','knop','dis','bas'],plate:['plate','pu','knop','dis']};
+const swCache=new Map();
+function swSeeds(d,ctx,kn){
+  const s=d.set, g=ctx.g, hwN=s.heelW/2, sp=s.ctrl.knobD+9, pw=Math.max(0,...ctx.pus.map(p=>p.cover.w/2));
+  const nk=ctx.pus.reduce((m,p)=>!m||p.route.cy>m.route.cy?p:m,null), yN=nk?nk.route.cy+SW_REF.dy:ctx.topY-60, front=nk?nk.route.cy+nk.route.h/2:0;
+  const S={bas:{p:{x:SW_REF.x,y:yN},box:[g.minX,-hwN-4,front-30,g.maxY]}, dis:{p:{x:-SW_REF.x,y:yN},box:[hwN+4,g.maxX,front-30,g.maxY]}};
+  { const p1=s.pu1, p2=s.pu2, q={x:pw+16,y:(PUS[p2.t]&&PUS[p2.t][1]?(p1.d+p2.d)/2:p1.d+30)}; S.pu={p:q,box:[q.x-30,q.x+60,q.y-60,q.y+60]}; }
+  if (kn&&kn.length){ const a=kn[kn.length-1], b=kn[kn.length-2]||{x:a.x,y:a.y+sp}, l=Math.hypot(a.x-b.x,a.y-b.y)||1, q={x:a.x+(a.x-b.x)/l*sp*1.05,y:a.y+(a.y-b.y)/l*sp*1.05}, f={x:kn[0].x-(a.x-kn[0].x)/l*sp*0.2,y:kn[0].y-(a.y-kn[0].y)/l*sp*0.2};
+    S.knop={p:q,box:[Math.min(q.x,f.x)-60,Math.max(q.x,f.x)+60,Math.min(q.y,f.y)-60,Math.max(q.y,f.y)+60]};
+    if (ideaOf(s.ctrl)==='plate'){ const an=kn[1]?Math.atan2(kn[0].x-kn[1].x,kn[0].y-kn[1].y):0, r={x:kn[0].x+38*Math.sin(an),y:kn[0].y+38*Math.cos(an)}; S.plate={p:r,box:[r.x-15,r.x+15,r.y-15,r.y+15]}; } }
+  return S;
+}
+function swClear(ctx,items,q){ const c=ctx.s.ctrl, r=itemR({t:'sw'},c), R=c.sw==='toggle3'?SW_CAV:r;
+  let m=distToPoly(ctx.g.poly,q)-R; for(const o of items) m=Math.min(m,Math.hypot(o.x-q.x,o.y-q.y)-r-itemR(o,c));
+  for(const p of ctx.pus) m=Math.min(m,rectDist(q,p.route)-r); m=Math.min(m,rectDist(q,ctx.neckRect)-r); return m; }
+function swBest(d,ctx,items,kn,want){
+  const s=d.set, c=s.ctrl, key=JSON.stringify([d.pts,d.sym,s.pu1,s.pu2,s.pu3,s.bridge,s.thick,s.heelW,s.pocket,s.scale,s.spBridge,s.sh,c.sw,c.knobD,ideaOf(c),want,items.map(i=>[i.t,i.x,i.y])]);
+  const hit=swCache.get(d.id); if(hit&&hit.key===key) return hit.res;
+  const S=swSeeds(d,ctx,kn), ord=(c.sw==='toggle3'?SW_ORDER.toggle3:ideaOf(c)==='plate'?SW_ORDER.plate:SW_ORDER.blade).filter(k=>k!==want);
+  if (want) ord.unshift(want);
+  let res=null;
+  for (const k of ord){ const o=S[k]; if(!o) continue; const [x0,x1,y0,y1]=o.box, C=[];
+    for (let x=Math.max(x0,ctx.g.minX);x<=Math.min(x1,ctx.g.maxX);x+=4) for (let y=Math.max(y0,ctx.g.minY);y<=Math.min(y1,ctx.g.maxY);y+=4){ const q={x,y}; if(!inside(ctx.g.poly,q)) continue; const cl=swClear(ctx,items,q); if(cl<0) continue; C.push({q,sc:Math.min(cl,15)-0.08*Math.hypot(x-o.p.x,y-o.p.y)}); }
+    C.sort((a,b)=>b.sc-a.sc);
+    for (let i=0;i<C.length&&i<400;i++){ const q=C[i].q, t=[...items,{t:'sw',x:q.x,y:q.y}]; if(!itemReason(ctx,t,t.length-1,q)){ res={k,p:q}; break; } }
+    if (res) break; }
+  swCache.set(d.id,{key,res}); return res;
+}
+function swWhyHTML(d){ const c=d.set.ctrl; if(c.sw==='none') return ''; const it=(c.items||[]).find(x=>x.t==='sw'); if(!it) return '';
+  const ctx=bodyCtx(d), O=SW_OPTS[c.swOpt]||null, ch=swChannel(ctx,c.items.filter(x=>x.t==='knob'),it), fit=swFit(d.set), e=distToPoly(ctx.g.poly,it)-(c.sw==='toggle3'?SW_CAV:itemR(it,c)), zone=it.y>-10&&it.y<ctx.neckStop, R=[];
+  R.push(O?(c.swOpt==='zelf'?`<b>Zelf gekozen</b>, binnen de veilige zone.`:`<b>Waarom hier: ${O.n.toLowerCase()}</b> (${O.from}). ${O.why}`):'<b>Waarom hier</b>: op deze vorm is er geen betere plek.');
+  R.push(`Bereik: ${ch?`recht kabelkanaal van ${fmt(ch.len,0)} mm naar ${ch.to}`:'geen recht kabelkanaal'}${zone?`, ${fmt(Math.abs(it.x)-itemR(it,c)-strHalf(d.set,it.y),0)} mm naast de buitenste snaar (min. ${SW_STR})`:', buiten de aanslagzone'}.`);
+  R.push(`Rand: ${fmt(e,0)} mm hout tussen ${c.sw==='toggle3'?'het vak (Ø 43, zoals op een Les Paul)':'het gat'} en de rand (min. ${fmt(SW_FLOOR,2)}).`);
+  R.push(fit?`Houtdikte: ${fit.n}, ${fmt(fit.dp)} mm diep, ${fmt(fit.floor)} mm bodem bij ${fmt(d.set.thick,0)} mm (min. ${fmt(SW_FLOOR,2)}).`:'Houtdikte: de body is te dun voor deze schakelaar.');
+  if (APP_LEVEL==='high') R.push(`<small>Plaats: x ${fmt(it.x)}, y ${fmt(it.y)} mm. Les Paul-plan: x −75,5, 38 mm vóór de halspickup, kanaal 12,7 mm vierkant. Bronnen: plan Les Paul (Catto 2006), Fender-tekening Strat '62, StewMac en verkopers (dieptes), Dantzig in Premier Guitar, Fender, Fralin. Meer in het Kennisboek, deel Schakelaar.</small>`);
+  return R.map(r=>`<p>${r}</p>`).join('');
+}
 function autoControls(d,ctx){
   const c=d.set.ctrl, g=ctx.g, items=[];
   const sp=c.knobD+9;
@@ -1268,21 +1348,14 @@ function autoControls(d,ctx){
     const A=spiral(pref,ok,140,5)||pref; items.push(...mk(A));
   } }
   if (c.sw!=='none'){
-    let pref, fixed=null; const sp_=c.swPos||'auto', hwN=d.set.heelW/2;
-    // gekozen plaats (Tom 14/11): bovenste hoorn baskant of diskant, naast de pickups, of in lijn met de knoppen
-    if (sp_==='bas'||sp_==='dis'){ for(let y=ctx.topY-30; y>ctx.topY-120 && !fixed; y-=5){ const hx=hits(g.poly,y); if(hx.length<2) continue; const e=sp_==='bas'?hx[0]:hx[hx.length-1], room=sp_==='bas'?-e-hwN:e-hwN; if(room<36) continue; const q={x:sp_==='bas'?(e-hwN)/2:(e+hwN)/2,y}; const tmp=[...items,{t:'sw',...q}]; if(!itemReason(ctx,tmp,tmp.length-1,q)) fixed=q; } }
-    else if (sp_==='pu'){ const p1=d.set.pu1, p2=d.set.pu2, pw=Math.max(0,...ctx.pus.map(p=>p.cover.w/2)); fixed={x:pw+16,y:(PUS[p2.t][1]?(p1.d+p2.d)/2:p1.d+30)}; }
-    else if (sp_==='knop' && kn && kn.length){ const a=kn[kn.length-1], b=kn[kn.length-2]||{x:a.x,y:a.y+sp}, l=Math.hypot(a.x-b.x,a.y-b.y)||1; fixed={x:a.x+(a.x-b.x)/l*sp*1.05,y:a.y+(a.y-b.y)/l*sp*1.05}; }
-    if (fixed){ const tmp=[...items,{t:'sw',...fixed}]; const q=spiral(fixed,q=>!itemReason(ctx,tmp,tmp.length-1,q),45,3); if(q){ items.push({t:'sw',x:q.x,y:q.y}); c.swMiss=false; } else fixed=null; }
-    if (sp_!=='auto' && !fixed) c.swMiss=true; else if(sp_==='auto') c.swMiss=false;
-    if (!fixed){
-    if (ideaOf(c)==='plate' && kn && kn.length){ const a=kn[1]?Math.atan2(kn[0].x-kn[1].x,kn[0].y-kn[1].y):0; pref={x:kn[0].x+38*Math.sin(a),y:kn[0].y+38*Math.cos(a)}; }
-    else if (c.sw==='toggle3'){ const y=ctx.topY-35, hx=hits(g.poly,y); pref = hx.length && hx[0] < -d.set.heelW/2-30 ? {x:(hx[0]-d.set.heelW/2)/2,y} : null; }
-    else { const p1=d.set.pu1, p2=d.set.pu2, pw=Math.max(0,...ctx.pus.map(p=>p.cover.w/2)); pref={x:pw+16,y:(PUS[p2.t][1]?(p1.d+p2.d)/2:p1.d+30)}; }
-    if (!pref){ const last=items[items.length-1]; pref=last?{x:last.x+sp*0.4,y:last.y-sp*0.9}:{x:xr*0.6,y:yRef}; }
-    const it={t:'sw',x:pref.x,y:pref.y}; items.push(it);
-    const p=spiral(pref,q=>!itemReason(ctx,items,items.length-1,q),120,5)||pref; it.x=p.x; it.y=p.y;
-  } }
+    // 16/11: eigen plek (gesleept) blijft staan zolang ze bouwbaar is; anders de dichtstbijzijnde goede plek. Zonder eigen plek: de beste plek voor deze vorm.
+    const sp_=c.swPos||'auto', ok=q=>{ const t=[...items,{t:'sw',x:q.x,y:q.y}]; return !itemReason(ctx,t,t.length-1,q); };
+    let pos=null; c.swMiss=false;
+    if (c.swAt){ pos=ok(c.swAt)?{x:c.swAt.x,y:c.swAt.y}:spiral(c.swAt,ok,45,3); if(pos){ c.swOpt='zelf'; if(Math.hypot(pos.x-c.swAt.x,pos.y-c.swAt.y)>0.5) c.swMiss=true; } }
+    if (!pos){ const want=sp_==='auto'||sp_==='zelf'?null:sp_, best=swBest(d,ctx,items,kn,want); if(best){ pos=best.p; c.swOpt=best.k; if(want&&best.k!==want) c.swMiss=true; } }
+    if (!pos){ c.swOpt=null; c.swMiss=sp_!=='auto'; const last=items[items.length-1], pref=last?{x:last.x+sp*0.4,y:last.y-sp*0.9}:{x:xr*0.6,y:yRef}; pos=spiral(pref,ok,120,5)||pref; }
+    items.push({t:'sw',x:pos.x,y:pos.y});
+  }
   const yJ=g.minY+(ctx.topY-g.minY)*0.2, hj=hits(g.poly,yJ), xJ=hj.length?hj[hj.length-1]:100;
   const jack={t:'jack',x:xJ,y:yJ}; items.push(jack);
   const ji=items.length-1;
@@ -1367,6 +1440,7 @@ function refreshAuto(d,light){
   if (!s.sh) s.sh=shDef();
   // vaste volgorde: hals > brug en pickups > pickguard > kamers > klankgaten > knoppen. Elke stap wijkt voor de vorige.
   if (!s.pg.edited) autoPG(d,ctx);
+  if ((c.sw==='blade3'||c.sw==='blade5') && !swFit(s)){ c.sw='toggle3'; c.swDown=true; }   // 16/11: schuifschakelaar 34,9 mm diep, past niet in een dunne body
   if (!light){
     if (!c.edited) autoControls(d,ctx);   // knoppen wijken voor de klankgaten (zie itemReason)
     else if (c.jack==='side') c.items.forEach(it=>{ if(it.t==='jack'){ const q=nearestOnPoly(ctx.g.poly,it); it.x=q.x; it.y=q.y; } });
@@ -1445,6 +1519,7 @@ function bodyChecks(d){
   { const s=d.set, fb=fbFret(s); if (fb<s.frets) out.push(`Fret ${fb+1}${s.frets>fb+1?' tot '+s.frets:''} ${s.frets>fb+1?'liggen':'ligt'} voorbij de toets: laat de toets verder lopen of neem minder frets`); }
   if (ctx.br.some(b=>b.r!=null?!(inside(ctx.g.poly,{x:b.x,y:b.y})&&distToPoly(ctx.g.poly,{x:b.x,y:b.y})>=b.r+4):!rectInBody(b,ctx.g.poly,4))) out.push('De brug valt (bijna) buiten de body (min. 4 mm hout rondom)');
   if (d.set.pocket<0) out.push('De hals stopt voor de body begint');
+  if (c.sw!=='none' && !swFit(d.set)) out.push(`De schakelaar past niet in ${fmt(d.set.thick,0)} mm dikte (min. ${fmt(SW_FLOOR,2)} mm bodem)`);
   out.push(...holeChecks(d));
   return out;
 }
@@ -1703,6 +1778,10 @@ function bodyItems(d,g){
     else { o+=circSVG(it.x,it.y,11,`fill="#888" fill-opacity=".5" ${st}`)+circSVG(it.x,it.y,4.5,'fill="#333"'); if(!CMP.matches) o+=`<text x="${p[0]+12*view.s+3}" y="${p[1]+4}" font-size="11" fill="#1f1c18">jack</text>`; }
     if (drag && drag.kind==='item' && drag.i!==i) o+=circSVG(it.x,it.y,itemR(it,c)+3,'fill="none" stroke="#c0392b" stroke-dasharray="3 3" stroke-width="1"');
   });
+  // 16/11: kabelkanaal van de schakelaar (Werkbank, Bouwplan) en de aanslagzone tijdens het slepen
+  { const si=its.findIndex(x=>x.t==='sw'), sw=its[si];
+    if (sw && drag && drag.kind==='item' && drag.i===si){ const P=[]; for(let y=-10;y<=ctx.neckStop;y+=10) P.push([strHalf(s,y)+itemR(sw,c)+SW_STR,y]); const pts=P.map(q=>toS(q[0],q[1]).join(',')).concat(P.slice().reverse().map(q=>toS(-q[0],q[1]).join(','))).join(' '); o+=`<polygon points="${pts}" fill="#c0392b" fill-opacity=".08" stroke="#c0392b" stroke-opacity=".35" stroke-dasharray="4 4"/>`; }
+    if (sw && !LIGHT && !d.ref){ const ch=swChannel(ctx,its.filter(x=>x.t==='knob'),sw); if(ch){ const a=toS(sw.x,sw.y), b=toS(ch.x,ch.y); o+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#b5541c" stroke-opacity=".55" stroke-width="2" stroke-dasharray="5 4"/>`; } } }
   const bot=g.poly.reduce((m,p)=>Math.abs(p.x)<40&&p.y<m.y?p:m,{y:Infinity});
   const hw=s.heelW/2, horn=g.poly.filter(p=>p.x<-hw-10).reduce((m,p)=>p.y>m.y?p:m,{y:-Infinity});
   [bot,horn].forEach(p=>{ if(isFinite(p.y)) o+=circSVG(p.x,p.y,4,'fill="#c9a227" stroke="#7a5f00"'); });
@@ -1991,8 +2070,8 @@ function buildPanel(){
       <div class="btns"><button data-act="knobSurprise">✨ Nog een idee</button><button data-act="autoCtrl" id="knobBack">Terug naar het idee</button></div>
       <p class="hint" id="ctrlState"></p>
       ${sel_('set.ctrl.sw','Schakelaar',{none:'Geen',toggle3:'3-weg toggle',blade3:'3-weg schuif',blade5:'5-weg schuif'},'data-after="ctrl"')}
-      ${d.set.ctrl.sw!=='none'?sel_('set.ctrl.swPos','Plaats schakelaar',{auto:'Vanzelf',bas:'Bovenste hoorn, baskant',dis:'Bovenste hoorn, diskant',pu:'Naast de pickups',knop:'In lijn met de knoppen'},'data-after="ctrl"')+'<p class="hint" id="swState" style="color:#b5541c"></p>':''}
-      ${sel_('set.ctrl.jack','Jack',{side:'In de zijkant',top:'Op de top (cup of plaat)'},'data-after="ctrl"')}
+      ${d.set.ctrl.sw!=='none'?sel_('set.ctrl.swPos','Plaats schakelaar',Object.assign({auto:'Vanzelf (beste plek)',bas:'Bovenste hoorn, baskant',dis:'Bovenste hoorn, diskant',pu:'Naast de pickups',knop:'In lijn met de knoppen'},d.set.ctrl.swPos==='zelf'?{zelf:'Zelf gekozen'}:{}),'data-after="ctrl"')+'<p class="hint" id="swHint">Sleep de schakelaar op de tekening om hem te verplaatsen.</p><p class="hint" id="swState" style="color:#b5541c"></p><div class="hint why" id="swWhy"></div>':''}
+      ${sel_('set.ctrl.jack','Jack',{side:'In de zijkant',top:'Op de top (cup of plaat)'},'data-after="ctrl"')}<div class="hint why" id="jackWhy"></div>
       ${chk('set.ctrl.loose','Elke knop apart slepen')}
       ${sel_('set.strapMode','Bovenste riemknop',{ideal:'Ideaal',trad:'Traditioneel'})}<p class="hint" id="strapState"></p></section>`;
     h+=`<section>${step(7,'Kop en render','Welke kop bij deze body hoort, en hoe de hele gitaar eruitziet.')}
@@ -2266,9 +2345,10 @@ function syncIdeas(d){
   $('#knobCount').textContent=c.n===0?'Geen knoppen':c.n===1?'1 knop':c.n+' knoppen';
   const cur=ideaOf(c), I=KNOB_IDEAS[cur], kn=(c.items||[]).filter(x=>x.t==='knob'), xb=d.set.spBridge/2;
   const reach=kn.length?Math.min(...kn.map(k=>Math.hypot(k.x-xb,k.y))):0, word=reach<75?'dicht bij de hand':reach<110?'goed bereikbaar':'ver van de hand';
-  $('#ctrlState').innerHTML=!kn.length?'':c.edited?`Zelf geschikt, volume ${word}. Sleep een knop en het groepje schuift mee. Sleep de omcirkelde en het groepje draait en spreidt.`:`<b>${I.n}</b> (${I.from}). ${I.why} Volume ${word}.`;
+  $('#ctrlState').innerHTML=!kn.length?'':c.edited?`Zelf geschikt, volume ${word}. Sleep een knop en het groepje schuift mee. Sleep de omcirkelde en het groepje draait en spreidt.`:`<b>${I.n}</b> (${I.from}). ${I.why} Volume ${word}${APP_LEVEL==='high'?` (${fmt(reach,0)} mm van het hoge-E-zadel; Strat, Les Paul, SG, ES-335: 70 à 94)`:''}.${I.src?` <small>Bron: ${I.src}.</small>`:''}`;
   $('#knobBack').style.display=c.edited?'':'none';
-  { const e=$('#swState'); if(e) e.textContent=c.sw!=='none'&&c.swMiss&&(c.swPos||'auto')!=='auto'&&!c.edited?'Daar past de schakelaar niet bij deze vorm; hij staat nu op de dichtstbijzijnde goede plek.':''; }
+  { const e=$('#swState'); if(e) e.textContent=c.swDown?'Een schuifschakelaar vraagt 34,9 mm diepte; bij deze dikte blijft er te weinig bodem. Het is een tuimelschakelaar geworden.':c.sw!=='none'&&c.swMiss&&(c.swPos||'auto')!=='auto'&&!c.edited?(c.swPos==='zelf'?'Daar kan de schakelaar niet meer staan; hij staat nu op de dichtstbijzijnde goede plek.':'Daar past de schakelaar niet bij deze vorm; hij staat nu op de dichtstbijzijnde goede plek.'):''; }
+  { const e=$('#swWhy'); if(e) e.innerHTML=LIGHT?'':swWhyHTML(d); const j=$('#jackWhy'); if(j&&!LIGHT){ const J=JACK_OPTS[c.jack]; j.innerHTML=J?`<b>Jack ${J.n.toLowerCase()}</b> (${J.from}). ${J.why}`:''; } }
   if (drag) return;
   clearTimeout(ideasT); ideasT=setTimeout(()=>{ if(D()===d) drawIdeas(d); },box.firstChild?160:0);
 }
@@ -2374,7 +2454,7 @@ P.addEventListener('input',e=>{
   if (b==='set.head'&&lib.view.whole) requestAnimationFrame(fit);
   const af=el.dataset.after;
   if (af==='layout'||af==='tuner'){ if(af==='tuner') applyTuner(d); d.set.auto=true; panelKey=''; if(growHead(d)){ toast('De kop is langer geworden zodat alle mechanieken passen. Ongedaan maken kan met ↶.'); fit(); } }
-  if (af==='ctrl'){ d.set.ctrl.edited=false; }
+  if (af==='ctrl'){ d.set.ctrl.edited=false; if(b==='set.ctrl.swPos'||b==='set.ctrl.sw'){ delete d.set.ctrl.swAt; delete d.set.ctrl.swDown; if(b==='set.ctrl.sw'&&d.set.ctrl.swPos==='zelf') d.set.ctrl.swPos='auto'; panelKey=''; } }
   if (b==='set.strapMode') delete d.set.strapF;
   if (af==='fit') requestAnimationFrame(fit);
   if (af==='pg'){ d.set.pg.edited=false; if(d.set.pg.style==='none') editPG=false; panelKey=''; }
@@ -2460,11 +2540,13 @@ svg.addEventListener('pointerdown',e=>{
     if (h){ if (near(h.hOut.x,h.hOut.y,9)){ pushUndo(); drag={kind:'handle',out:true,h}; return; } if (near(h.hIn.x,h.hIn.y,9)){ pushUndo(); drag={kind:'handle',out:false,h}; return; } }
     let best=null, bd=11*TR;
     tg.a.forEach(p=>{ const q=toS(p.x,p.y), dd=Math.hypot(q[0]-sx,q[1]-sy); if(dd<bd||(dd===bd&&!p.mir)){bd=dd;best=p;} });
+    // 16/11 (Tom: de schakelaar was niet te pakken): tik je dichter bij een knop, de schakelaar of de jack dan bij een randpunt, dan pak je die
+    if (best && d.type==='body' && lib.view.hw && !tgt.isPG){ const its=d.set.ctrl.items||[]; if(its.some(it=>{ const q=toS(it.x,it.y), dd=Math.hypot(q[0]-sx,q[1]-sy); return dd<bd && dd<Math.max(it.t==='sw'?14:9,itemR(it,d.set.ctrl)*view.s)*TR; })) best=null; }
     if (best){ pushUndo(); sel=best.src; drag={kind:'pt',mir:best.mir,orig:tgt.pts.map(p=>({x:p.x,y:p.y}))}; update(); return; }
     if (d.type==='body' && lib.view.hw && !tgt.isPG){
       const ctx=bodyCtx(d), its=d.set.ctrl.items||[], pinF=strapPins(d).F;
       if (near(pinF.x,pinF.y,10)){ pushUndo(); drag={kind:'strap'}; return; }
-      const ii=its.findIndex(it=>near(it.x,it.y,Math.max(9,itemR(it,d.set.ctrl)*view.s)));
+      const ii=its.findIndex(it=>near(it.x,it.y,Math.max(it.t==='sw'?14:9,itemR(it,d.set.ctrl)*view.s)));
       const kIdx=its.map((x,i)=>x.t==='knob'?i:-1).filter(i=>i>=0);
       if (ii>=0 && its[ii].t==='knob' && kIdx.length>1 && !d.set.ctrl.loose){ pushUndo(); drag={kind:'group',swing:ii===kIdx[kIdx.length-1],idx:kIdx,w0:{x:w.x,y:w.y},orig:kIdx.map(i=>({x:its[i].x,y:its[i].y})),bad:kIdx.some(i=>itemReason(ctx,its,i,its[i]))}; return; }
       if (ii>=0){ pushUndo(); const it=its[ii]; drag={kind:'item',i:ii,last:{x:it.x,y:it.y},bad:!!itemReason(ctx,its,ii,it)}; return; }
@@ -2517,6 +2599,7 @@ svg.addEventListener('pointermove',e=>{
     if (side){ const q=nearestOnPoly(ctx.g.poly,np); np={x:q.x,y:q.y}; if(!drag.bad && !ok(np)) np=drag.last; }
     blockMsg = !drag.bad && (Math.hypot(np.x-cand.x,np.y-cand.y)>1) ? itemReason(ctx,its,drag.i,cand) : '';
     it.x=np.x; it.y=np.y; drag.last={...np}; if (ok(np)) drag.bad=false;
+    if (it.t==='sw'){ c.swAt={x:np.x,y:np.y}; if(c.swPos!=='zelf'){ c.swPos='zelf'; panelKey=''; } if(!c.edited){ update(true); return; } }
     c.edited=true; update(true); return;
   }
   if (drag.kind==='strap'){ const q=nearestOnPoly(geom(d).poly,w); d.set.strapF={x:Math.round(q.x*2)/2,y:Math.round(q.y*2)/2}; update(true); return; }
@@ -3739,7 +3822,7 @@ function applyLevel(){ if(APP_LEVEL==='high') return;
   ['#techBox','[data-act=pgSvg]','[data-act=tgtPG]','#knobBack'].forEach(q=>P.querySelectorAll(q).forEach(e=>tag(e,'h')));
   // light: geen techniek, geen cijfers
   [['[data-nav="1"]','n'],['[data-nav="4"]','n']].forEach(([q,lv])=>{ const h=P.querySelector(q); if(h) tag(h.closest('section'),lv); });
-  ['#viewBox','#qBox','#strapState','#ctrlState','#shState','#pgState','#ptBox','.hint.flow'].forEach(q=>P.querySelectorAll(q).forEach(e=>tag(e,'n')));
+  ['#viewBox','#qBox','#strapState','#ctrlState','#swWhy','#jackWhy','#shState','#pgState','#ptBox','.hint.flow'].forEach(q=>P.querySelectorAll(q).forEach(e=>tag(e,'n')));
   const sum=P.querySelector('#sum'); if(sum) tag(sum.closest('section'),'n');
   P.querySelectorAll('section>p.hint, aside>p.hint').forEach(e=>{ if(/volgorde|Nulpunt|Oranje velden/.test(e.textContent)) tag(e,'n'); });
 }
