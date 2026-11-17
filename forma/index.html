@@ -582,6 +582,8 @@ T_RULES.push(
     'Herkenbaar: kleine ingrepen op één bestaande vorm.':'Recognisable: small changes to one existing shape.','Duidelijk een eigen vorm, maar nog vertrouwd.':'Clearly its own shape, but still familiar.','Grotere ingrepen en mengvormen, de bron herken je nog maar half.':'Bigger changes and blends, you only half recognise the source.','Ver van alles wat bestaat. Elke vorm blijft gekeurd: bouwbaar en een schone lijn.':'Far from anything that exists. Every shape is still checked: buildable and a clean line.',
     'Tik een vorm om te kiezen. Pickups, knoppen en mechanieken worden daarna vanzelf ingepast.':'Tap a shape to choose it. Pickups, knobs and tuners are fitted automatically.','De stippellijn is je huidige ontwerp.':'The dotted line is your current design.','Uit: de vormen blijven strak en symmetrisch van gevoel.':'Off: the shapes keep a clean, symmetrical feel.'});
   T_RULES.unshift(
+    [/^Dat patroon past niet op deze kop\. De mechanieken blijven zoals ze stonden\.$/, m=>'That pattern does not fit this head. The tuners stay where they were.'],
+    [/^Dat patroon past niet op deze kop\. De mechanieken staan nu (.+)\.$/, m=>'That pattern does not fit this head. The tuners are now '+({'6 op rij':'6 in line','6 op rij (omgekeerd)':'6 in line (reversed)','3 + 3':'3 + 3'}[m[1]]||m[1])+'.'],
     [/^Organische variatie op (.+)$/, m=>'Organic variation on '+tr(m[1])],
     [/^Variatie op (.+)$/, m=>'Variation on '+tr(m[1])],
     [/^(Bashoorn|Diskanthoorn|Uitsparing|Taille diskant|Taille bas|Onderbout diskant|Onderbout bas|Staart|Kop bas|Kop diskant|Kop) (\d+) mm (langer|korter|dieper|minder diep|hoger|lager|breder|smaller)$/, m=>PART[m[1]]+' '+m[2]+' mm '+ADJ[m[3]]],
@@ -616,12 +618,31 @@ if (LIGHT){
 const b64u=u8=>{ let s=''; for (let i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); };
 const unb64u=s=>{ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const b=atob(s), u=new Uint8Array(b.length); for (let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; };
 function packStrip(d){ const c=clone(d); delete c.ref; if(c.bg&&JSON.stringify(c.bg).length>400) c.bg=null; return c; }
-async function packDesign(b,h){ const s=JSON.stringify({v:1,b:packStrip(b),h:h?packStrip(h):null,r:(lib.view&&lib.view.rnd)||{}}), bytes=new TextEncoder().encode(s);
+// Korte link (17/11, Tom: "belachelijk lange link"): v2 stuurt enkel wat afwijkt van de standaard, punten als gehele verschillen (0,01 mm, verliesloos), kop van de bibliotheek enkel als naam.
+const isPtArr=a=>Array.isArray(a)&&a.length>0&&a.every(p=>p&&typeof p.x==='number'&&typeof p.y==='number'&&Object.keys(p).every(k=>k==='x'||k==='y'||k==='c'));
+function encPts(a){ const k=a.every(p=>Math.abs(p.x*10-Math.round(p.x*10))<1e-6&&Math.abs(p.y*10-Math.round(p.y*10))<1e-6)?10:100; let px=0,py=0; const d=[],c=[]; a.forEach((p,i)=>{ const x=Math.round(p.x*k), y=Math.round(p.y*k); d.push(x-px,y-py); px=x; py=y; if(p.c) c.push(i); }); const f=a.some(p=>p.c===false); return {d,c,f:f?1:0,k}; }
+function decPts(o){ const a=[], k=o.k||100; let x=0,y=0; for(let i=0;i<o.d.length;i+=2){ x+=o.d[i]; y+=o.d[i+1]; const p={x:x/k,y:y/k}; if(o.f||o.c.length) p.c=false; a.push(p); } o.c.forEach(i=>{ if(a[i]) a[i].c=true; }); return a; }
+function encDesign(d){ const c=packStrip(d); delete c.id; if(c.bg==null) delete c.bg; delete c.sig;
+  const def=(c.type==='body'?defaultBody():defaultHead(true)).set, st={}; for(const k in c.set){ if(JSON.stringify(c.set[k])!==JSON.stringify(def[k])) st[k]=c.set[k]; } c.set=st;
+  if(c.set.pg&&!c.set.pg.edited&&c.set.pg.pts) c.set.pg={...c.set.pg,pts:null};
+  if(c.set.pg&&isPtArr(c.set.pg.pts)){ c.set.pg={...c.set.pg,P:encPts(c.set.pg.pts)}; delete c.set.pg.pts; }
+  if(isPtArr(c.pts)){ c.P=encPts(c.pts); delete c.pts; }
+  if(isPtArr(c.posts)){ c.Q=encPts(c.posts); delete c.posts; }
+  return c; }
+function decDesign(c){ if(c.P){ c.pts=decPts(c.P); delete c.P; } if(c.Q){ c.posts=decPts(c.Q); delete c.Q; } if(c.set&&c.set.pg&&c.set.pg.P){ c.set.pg.pts=decPts(c.set.pg.P); delete c.set.pg.P; } c.set=c.set||{}; return c; }
+function encHead(h){ if(h.ref) return {ref:h.id}; const src=lib.designs.find(r=>r.ref&&r.type==='headstock'&&JSON.stringify(r.pts)===JSON.stringify(h.pts));
+  if(!src) return encDesign(h); const st={}; for(const k in h.set){ if(JSON.stringify(h.set[k])!==JSON.stringify(src.set[k])) st[k]=h.set[k]; }
+  const o={from:src.id,name:h.name,set:st}; if(h.set.auto===false&&isPtArr(h.posts)) o.Q=encPts(h.posts); return o; }
+async function packDesign(b,h){ const s=JSON.stringify({v:2,b:encDesign(b),h:h?encHead(h):null,r:(lib.view&&lib.view.rnd)||{}}), bytes=new TextEncoder().encode(s);
   if (window.CompressionStream){ try { const st=new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw')); return 'z'+b64u(new Uint8Array(await new Response(st).arrayBuffer())); } catch(e){} }
   return 'j'+b64u(bytes); }
 async function unpackDesign(code){ const u=unb64u(code.slice(1)); let bytes=u;
   if (code[0]==='z'){ const st=new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw')); bytes=new Uint8Array(await new Response(st).arrayBuffer()); }
-  return JSON.parse(new TextDecoder().decode(bytes)); }
+  const o=JSON.parse(new TextDecoder().decode(bytes));
+  if (o&&o.v===2){ if(o.b) decDesign(o.b); if(o.h&&o.h.ref){ const r=lib.designs.find(x=>x.id===o.h.ref); o.h=r?clone(r):null; }
+    else if(o.h&&o.h.from){ const r=lib.designs.find(x=>x.id===o.h.from); if(!r) o.h=null; else { const h=clone(r); delete h.ref; h.name=o.h.name||h.name; Object.assign(h.set,clone(o.h.set||{})); if(o.h.Q) h.posts=decPts(o.h.Q); else { h.set.auto=true; placePosts(h); } o.h=h; } }
+    else if(o.h) decDesign(o.h); }
+  return o; }
 const pubBase=()=>location.origin+location.pathname;
 async function designLink(){ const b=D().type==='body'?D():lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'); if(!b) return null; if(!b.ref){ b.set.lefty=isLeft(b); const hh=partnerHead(b); if(hh&&!hh.ref) hh.set.lefty=b.set.lefty; } return {b, url:pubBase()+'#d='+(await packDesign(b,partnerHead(b)))}; }
 async function importFromHash(){ const m=location.hash.match(/[#&]d=([A-Za-z0-9_-]+)/); if(!m) return false;
@@ -645,8 +666,8 @@ function designSummary(b){ const o=rndOpt(), s=b.set, h=partnerHead(b), sh=s.sh&
   return L.map(([k,v])=>tr(k)+': '+tr(v)).join('\n'); }
 async function sendToSixto(){ const L=await designLink(); if(!L) return; const sum=designSummary(L.b);
   const subj=EN?`My guitar design: ${tr(L.b.name)}`:`Mijn gitaarontwerp: ${L.b.name}`;
-  const body=EN?`Hi Tom,\n\nThis is the guitar I designed with ${PUB_NAME}:\n${L.url}\n\n${sum}\n\nA bit about me and what I'd like (style, wood, sound, budget…):\n\n\n—\nBy sending this, I agree that Sixto may look at my design for inspiration. It is never published without my permission.`
-    :`Dag Tom,\n\nDit is de gitaar die ik ontwierp met ${PUB_NAME}:\n${L.url}\n\n${sum}\n\nIets over mezelf en wat ik zou willen (stijl, hout, klank, budget…):\n\n\n—\nMet dit bericht ga ik akkoord dat Sixto mijn ontwerp bekijkt als inspiratie. Het wordt nooit zonder mijn toestemming gepubliceerd.`;
+  const body=EN?`Hi Tom,\n\nThis is the guitar I designed with ${PUB_NAME}:\n\n${sum}\n\nA bit about me and what I'd like (style, wood, sound, budget…):\n\n\n—\nOpen my design in Forma:\n${L.url}\n\nBy sending this, I agree that Sixto may look at my design for inspiration. It is never published without my permission.`
+    :`Dag Tom,\n\nDit is de gitaar die ik ontwierp met ${PUB_NAME}:\n\n${sum}\n\nIets over mezelf en wat ik zou willen (stijl, hout, klank, budget…):\n\n\n—\nMijn ontwerp openen in Forma:\n${L.url}\n\nMet dit bericht ga ik akkoord dat Sixto mijn ontwerp bekijkt als inspiratie. Het wordt nooit zonder mijn toestemming gepubliceerd.`;
   // 16/11 (Tom): niet meer rechtstreeks naar mailto. Zonder ingestelde mail-app (laptop: Thunderbird zonder account) opende er een leeg venster of een inlogscherm.
   // Nu staat het bericht klaar en kiest de klant: mail-app, Gmail in de browser, of kopiëren en zelf sturen.
   SEND={mailto:'mailto:'+PUB_MAIL+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body),
@@ -2491,7 +2512,7 @@ function drawIdeas(d){
   if (key===ideasKey && box.firstChild) return; ideasKey=key;
   const ctx=bodyCtx(d), g=ctx.g, sc=88/(g.maxY-g.minY), X=x=>((isLeft(d)?g.maxX-x:x-g.minX)*sc+4).toFixed(1), Y=y=>((g.maxY-y)*sc+4).toFixed(1), w=(g.maxX-g.minX)*sc+8, h=96;
   const body=g.poly.filter((_,i)=>i%3===0).map(p=>X(p.x)+','+Y(p.y)).join(' ');
-  const hw=ctx.pus.map(p=>{ const r=p.route; return `<rect x="${X(r.cx-r.w/2)}" y="${Y(r.cy+r.h/2)}" width="${(r.w*sc).toFixed(1)}" height="${(r.h*sc).toFixed(1)}" fill="#bdb6aa"/>`; }).join('');
+  const hw=ctx.pus.map(p=>{ const r=p.route; return `<rect x="${X(isLeft(d)?r.cx+r.w/2:r.cx-r.w/2)}" y="${Y(r.cy+r.h/2)}" width="${(r.w*sc).toFixed(1)}" height="${(r.h*sc).toFixed(1)}" fill="#bdb6aa"/>`; }).join('');
   box.innerHTML=Object.entries(KNOB_IDEAS).filter(([,v])=>c.n>=v.min).map(([id,v])=>{ const ks=c.n?knobLayout(d,ctx,id,null):[];
     return `<button class="idea ${id===cur&&!c.edited?'on':''}" data-act="idea" data-k="${id}" ${ks?'':'disabled'}><svg viewBox="0 0 ${w.toFixed(0)} ${h}" aria-hidden="true"><polygon points="${body}" fill="#f4efe7" stroke="#6b6257"/>${hw}${(ks||[]).map(k=>`<circle cx="${X(k.x)}" cy="${Y(k.y)}" r="${Math.max(2.6,c.knobD/2*sc).toFixed(1)}" fill="#b5541c"/>`).join('')}</svg><span>${ks?v.n:v.n+': past hier niet'}</span></button>`; }).join('');
   applyLock();
@@ -2581,11 +2602,12 @@ P.addEventListener('input',e=>{
   if (b==='set.strings') v=Math.max(1,Math.min(12,Math.round(v)));
   if (b==='set.frets'){ v=Math.max(1,Math.min(36,Math.round(v))); const s0=D().set; if(s0.fbFret==null||s0.fbFret===s0.frets) s0.fbFret=v; }
   if (b==='set.ctrl.n') v=Math.max(0,Math.min(6,Math.round(v)));
+  const prevHead=(LIGHT&&el.dataset.after==='layout'&&d.type==='headstock')?{set:{layout:d.set.layout,pat:d.set.pat,auto:d.set.auto},posts:clone(d.posts)}:null;
   setP(o,p,v);
   if (b==='view.ghost'||b==='set.wood') panelKey='';
   if (b==='set.head'&&lib.view.whole) requestAnimationFrame(fit);
   const af=el.dataset.after;
-  if (af==='layout'||af==='tuner'){ if(af==='tuner') applyTuner(d); d.set.auto=true; panelKey=''; if(growHead(d)){ toast('De kop is langer geworden zodat alle mechanieken passen. Ongedaan maken kan met ↶.'); fit(); } }
+  if (af==='layout'||af==='tuner'){ if(af==='tuner') applyTuner(d); d.set.auto=true; panelKey=''; if(growHead(d)){ toast('De kop is langer geworden zodat alle mechanieken passen. Ongedaan maken kan met ↶.'); fit(); } else if(LIGHT){ const L=layoutThatFits(d,prevHead); if(L==='terug') toast('Dat patroon past niet op deze kop. De mechanieken blijven zoals ze stonden.'); else if(L) toast('Dat patroon past niet op deze kop. De mechanieken staan nu '+LAY_NAME[L]+'.'); } }
   if (af==='ctrl'){ d.set.ctrl.edited=false; if(b==='set.ctrl.swPos'||b==='set.ctrl.sw'){ delete d.set.ctrl.swAt; delete d.set.ctrl.swDown; if(b==='set.ctrl.sw'&&d.set.ctrl.swPos==='zelf') d.set.ctrl.swPos='auto'; panelKey=''; } }
   if (b==='set.strapMode') delete d.set.strapF;
   if (af==='fit') requestAnimationFrame(fit);
@@ -2878,7 +2900,7 @@ function runAct(a,t){ const d=D();
     case 'bgMove': mode='bg'; render(); break;
     case 'calib': calib=[]; mode='edit'; render(); break;
     case 'fitPosts': { pushUndo(); const n=fitPosts(d); update(); toast(n?`${n} post(s) verschoven naar de dichtstbijzijnde plek die past`:'Alle posts passen al'); break; }
-    case 'resetPosts': pushUndo(); d.set.auto=true; if(d.set.layout==='custom') d.set.layout=headFam(d); placePosts(d); update(); toast('Mechanieken opnieuw geplaatst: rechte snaartrek, gelijke afstand tot de rand'); break;
+    case 'resetPosts': pushUndo(); d.set.auto=true; if(d.set.layout==='custom') d.set.layout=headFam(d); placePosts(d); if(LIGHT&&headChecks(d).length){ const L=layoutThatFits(d); if(L){ update(); toast('Dat patroon past niet op deze kop. De mechanieken staan nu '+LAY_NAME[L]+'.'); break; } } update(); toast('Mechanieken opnieuw geplaatst: rechte snaartrek, gelijke afstand tot de rand'); break;
     case 'insp': openInsp(); break;
     case 'mash': openMash(); break;
     case 'exportSvg': exportSvg(d,false); break;
@@ -2986,6 +3008,14 @@ function growHead(d){
   for (let i=1;i<=16;i++){ d.pts.forEach((p,j)=>{ if(O[j]>0.5) p.y=Math.round(O[j]*Math.pow(1.04,i)*100)/100; }); placePosts(d); if(!headChecks(d).length) return true; }
   d.pts.forEach((p,j)=>{ p.y=O[j]; }); placePosts(d); return false;
 }
+// Forma (17/11, Tom: mechanieken naast de kop): past een patroon niet op deze kop, kies dan zelf een patroon dat wel past. Geeft het nieuwe patroon terug, of null.
+const LAY_NAME={inline:'6 op rij',rev:'6 op rij (omgekeerd)',split:'3 + 3'};
+function layoutThatFits(d,prev){ if(d.type!=='headstock'||d.ref||d.set.layout==='custom') return null;
+  const ok=()=>{ placePosts(d); if(headChecks(d).length&&typeof fitPosts==='function') fitPosts(d); return !headChecks(d).length; };
+  if(ok()) return null; const cur=d.set.layout;
+  for(const L of ['inline','split','rev'].filter(x=>x!==cur)){ d.set.layout=L; d.set.pat=null; d.set.auto=true; if(ok()) return L; }
+  if(prev){ Object.assign(d.set,prev.set); d.posts=prev.posts; if(!headChecks(d).length) return 'terug'; }   // geen enkel patroon past: het vorige terug
+  d.set.layout=cur; d.set.pat=null; placePosts(d); return null; }
 function headFam(d){ const P=d.posts, n=P.length; if(n<2) return 'inline'; const h=Math.ceil(n/2);
   if (P.slice(0,h).every(p=>p.x<0)&&P.slice(h).every(p=>p.x>0)&&P[h].y>P[n-1].y) return 'split'; return P[0].y<=P[n-1].y?'inline':'rev'; }
 // omtrek van diskanthoek over de top naar bashoek, met de top als herkenningspunt
