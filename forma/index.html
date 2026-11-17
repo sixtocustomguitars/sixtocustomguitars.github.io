@@ -440,6 +440,7 @@ const T_RULES=[
   [/^(.+) × (.+)$/, m=>m[0].split(' × ').map(x=>tr(x)).join(' × ')],
   [/^(.+), organisch$/, m=>tr(m[1])+', organic'],
   [/^(.+), bijgestuurd$/, m=>tr(m[1])+', reshaped'],
+  [/^(.+), andere verhoudingen$/, m=>tr(m[1])+', different proportions'],
   [/^Mijn gitaar naar (.+?)( \d+)?$/, m=>'My '+tr(m[1])+(m[2]||'')],
   [/^Nieuwe (body|kop)( \d+)$/, m=>'New '+(m[1]==='kop'?'head':'body')+m[2]],
   [/^Kop naar (.+)$/, m=>'Head like '+tr(m[1])],
@@ -456,6 +457,7 @@ const T_RULES_NL=[
   [/^(.+) × (.+)$/, m=>m[0].split(' × ').map(x=>tr(x)).join(' × ')],
   [/^(.+), organic$/, m=>tr(m[1])+', organisch'],
   [/^(.+), reshaped$/, m=>tr(m[1])+', bijgestuurd'],
+  [/^(.+), different proportions$/, m=>tr(m[1])+', andere verhoudingen'],
   [/^My (.+?)( \d+)?$/, m=>'Mijn gitaar naar '+tr(m[1])+(m[2]||'')],
   [/^New (body|head)( \d+)$/, m=>'Nieuwe '+(m[1]==='head'?'kop':'body')+m[2]],
   [/^Head like (.+)$/, m=>'Kop naar '+tr(m[1])],
@@ -3261,7 +3263,8 @@ const SRC_CATS=[['klas','Klassiekers'],['nat','Natuur'],['arch','Architectuur'],
 function srcCat(id){ const k=id.replace(/^ref-(h-)?/,''), r=lib.designs.find(d=>d.id===id); const nm=r?r.name:'';   // op id, niet op naam: in het Engels heten ze "(nature)" (fout tot 13/11)
   if(REF_ROUGH.includes(id.replace(/^ref-/,''))) return 'ruw'; if(/^n-/.test(k)) return /^n-(gotisch|romaans|deco|ui|spits)$/.test(k)?'arch':'nat'; if(/architectu/.test(nm)) return 'arch'; if(/natu/.test(nm)) return 'nat'; if(GEN_WILD.includes(k)||/^(iceman|firebird|explorer|moderne|n4|rhoads|billybo|mockingbird|c5150)$/.test(k)) return 'wild'; return 'klas'; }
 function srcOn(id){ const S=insp.src||{}; return !!S[srcCat(id)]; }
-function bodyPool(){ if(insp.fam&&FAMS[insp.fam]) return FAMS[insp.fam].k.filter(k=>refVecs()[k]&&(!/^n-/.test(k)||true)); return [...new Set(GEN_POOL.concat(GEN_WILD,['n-deco'],lib.designs.filter(d=>d.ref&&d.type==='body'&&/^ref-n-/.test(d.id)).map(d=>d.id.slice(4))))].filter(k=>refVecs()[k]&&srcOn('ref-'+k)); }
+let GENFAM=null;   // 17/11: zonder gekozen familie kiest de generator zelf één familie per voorstel (nooit families door elkaar)
+function bodyPool(){ const fm=insp.fam&&FAMS[insp.fam]?insp.fam:GENFAM; if(fm&&FAMS[fm]) return FAMS[fm].k.filter(k=>refVecs()[k]&&(!/^n-/.test(k)||true)); return [...new Set(GEN_POOL.concat(GEN_WILD,['n-deco'],lib.designs.filter(d=>d.ref&&d.type==='body'&&/^ref-n-/.test(d.id)).map(d=>d.id.slice(4))))].filter(k=>refVecs()[k]&&srcOn('ref-'+k)); }
 // wildheid: hoe ver een voorstel van elke bestaande vorm mag liggen (gemeten op de omtrek). Elke trap heeft een eigen band.
 const FAMS={
   single:{n:'Enkele cutaway',t:'Één uitsparing, vol lichaam: Les Paul, Telecaster, Les Paul Junior.',k:['lp','lpjsc','tele','asher','i5t','duojet','sf-single4']},
@@ -3296,8 +3299,12 @@ function novelty(d){ if(!REFSIG) REFSIG=lib.designs.filter(x=>x.ref&&x.type===d.
 const NO_MIX=['n-schelp','n-deco'];
 // een voorstel moet ook als bas (of gitaar) door de keuring: de omzetting gebeurt pas daarna, en sommige vormen (Explorer, I5T) halen dat niet
 const okInst=r=>proposalOK(r)&&proposalOK(instFix(clone(r)));
-function genBody(w,amp){ const V=refVecs(); let pool=bodyPool(), org0=insp.org===false?0:1; if(!pool.length) return null; if(amp==null) amp=w;
-  if(insp.fam==='hoekig'||insp.fam==='natuur'){   // scherpe en organische vormen vallen uiteen bij bijsturen (golvende flanken): enkel de verhoudingen laten variëren, de lijnen blijven van de bron
+function genBody(w,amp){ if(insp.fam&&FAMS[insp.fam]) return genBodyIn(w,amp);
+  const fs=[...FAM_ORDER].sort(()=>Math.random()-0.5);   // geen familie gekozen: één familie per voorstel, de volgende als die niets oplevert
+  try{ for(const f of fs.slice(0,4)){ GENFAM=f; const r=genBodyIn(w,amp); if(r) return r; } }finally{ GENFAM=null; }
+  return null; }
+function genBodyIn(w,amp){ const V=refVecs(); let pool=bodyPool(), org0=insp.org===false?0:1; if(!pool.length) return null; if(amp==null) amp=w; const FM=insp.fam&&FAMS[insp.fam]?insp.fam:GENFAM;
+  if(FM==='hoekig'||FM==='natuur'){   // scherpe en organische vormen vallen uiteen bij bijsturen (golvende flanken): enkel de verhoudingen laten variëren, de lijnen blijven van de bron
     for(let i=0;i<12;i++){ const k=pick(pool), src=lib.designs.find(d=>d.id==='ref-'+k); if(!src) continue; const R=Math.random, sx=0.86+R()*0.3, sy=0.9+R()*0.2, d0=clone(src), top=Math.max(...d0.pts.map(p=>p.y));
       d0.pts.forEach(p=>{ if(top-p.y>40) p.x=Math.round(p.x*sx*10)/10; p.y=Math.round((top+(p.y-top)*sy)*10)/10; });
       const poly=geom(d0).poly, ok=finishBody(poly,refLobes(k)+1); if(ok&&calmAs(ok,[k],false)&&hornsOK(ok,[k])){ const r=bodyFromPoly(ok,src.set,refName(k)+', andere verhoudingen'); if(okInst(r)) return r; } }
@@ -3311,7 +3318,7 @@ function genBody(w,amp){ const V=refVecs(); let pool=bodyPool(), org0=insp.org==
   pool=pool.filter(k=>!NO_MIX.includes(k));   // schelp en art deco: wel bijsturen, niet half-half mengen (geschulpte rand en facetten geven bulten)
   if(pool.length<2) return null;
   const fam=k=>{ const c=srcCat('ref-'+k); return c==='nat'||c==='arch'?'org':c; };
-  for(let i=0;i<14;i++){ const k0=pick(pool), sub=pool.filter(k=>fam(k)===fam(k0)), use=sub.length>=2?sub:pool; const pT=pickHalf(V,use,'t',Math.random), pB=Math.random()<(amp>1.2?0.5:0.7)?pT.map(x=>[...x]):pickHalf(V,use,'b',Math.random);
+  for(let i=0;i<14;i++){ const k0=pick(pool), sub=sameCut(pool,k0).filter(k=>fam(k)===fam(k0)), use=sub.length>=2?sub:sameCut(pool,k0).length>=2?sameCut(pool,k0):pool; const pT=pickHalf(V,use,'t',Math.random), pB=Math.random()<(amp>1.2?0.5:0.7)?pT.map(x=>[...x]):pickHalf(V,use,'b',Math.random);
     const g=blendBody(V,use,Math.random,{amt:Math.min(2.6,0.3+amp*1.0),pT,pB}); let poly=g.poly, org=org0&&Math.random()<0.2+0.25*amp; if(org) poly=organicFlow(poly,Math.min(2.2,0.5+amp*0.7),Math.random);
     const PK=[...new Set(g.parents.t.concat(g.parents.b))], ok=finishBody(poly,Math.max(...PK.map(refLobes))+(amp>1.5?1:0)); if(!ok||!calmAs(ok,PK,amp>1.5)||!hornsOK(ok,PK)) continue;
     const main=lib.designs.find(d=>d.id==='ref-'+g.parents.t[0])||defaultBody(), nm=[...new Set(g.parents.t.concat(g.parents.b))].slice(0,3).map(refName).join(' × ');
