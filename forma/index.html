@@ -574,6 +574,28 @@ T_RULES.push(
   [/^te dicht bij post (\d+) \((.+) mm, min\. (.+)\)$/, m=>'too close to post '+m[1]+' ('+m[2]+' mm, min. '+m[3]+')'],
   [/^Forma-vorm (\d+)$/, m=>'Forma shape '+m[1]],
   [/^(.+?) (\d+)$/, m=>{ const v=tr(m[1]); return v===m[1]?m[0]:v+' '+m[2]; }]);
+// Engels voor de ✨-voorstellen: namen, 'Wat verandert' en 'Wat het oplevert' (17/11/2026)
+{ const dot=x=>String(x).replace(',','.'), PART={'Bashoorn':'Bass horn','Diskanthoorn':'Treble horn','Uitsparing':'Cutaway','Taille diskant':'Treble-side waist','Taille bas':'Bass-side waist','Onderbout diskant':'Treble-side lower bout','Onderbout bas':'Bass-side lower bout','Staart':'Tail','Kop':'Head','Kop bas':'Bass-side head','Kop diskant':'Treble-side head'},
+    ADJ={'langer':'longer','korter':'shorter','dieper':'deeper','minder diep':'shallower','hoger':'higher','lager':'lower','breder':'wider','smaller':'narrower'};
+  Object.assign(T_EN,{'Wat verandert':'What changes','Wat het oplevert':'What you gain','organische zwaai':'organic sway','langer':'longer','korter':'shorter','breder naar boven':'wider towards the top','smaller naar boven':'narrower towards the top','kroon gekanteld':'crown tilted','schouder hoger':'shoulder higher','schouder lager':'shoulder lower','flank boller':'flank more rounded','flank holler':'flank more hollow','zwaai':'sway','strakker':'tighter','ronder':'rounder','ligt rustiger op je been':'rests more calmly on your leg','geen snaarboom':'no string tree',
+    'Hoe ver een variatie van je ontwerp mag gaan.':'How far a variation may move from your design.','Hoe ver een verbetering van je ontwerp mag afwijken.':'How far an improvement may move from your design.',
+    'Herkenbaar: kleine ingrepen op één bestaande vorm.':'Recognisable: small changes to one existing shape.','Duidelijk een eigen vorm, maar nog vertrouwd.':'Clearly its own shape, but still familiar.','Grotere ingrepen en mengvormen, de bron herken je nog maar half.':'Bigger changes and blends, you only half recognise the source.','Ver van alles wat bestaat. Elke vorm blijft gekeurd: bouwbaar en een schone lijn.':'Far from anything that exists. Every shape is still checked: buildable and a clean line.',
+    'Tik een vorm om te kiezen. Pickups, knoppen en mechanieken worden daarna vanzelf ingepast.':'Tap a shape to choose it. Pickups, knobs and tuners are fitted automatically.','De stippellijn is je huidige ontwerp.':'The dotted line is your current design.','Uit: de vormen blijven strak en symmetrisch van gevoel.':'Off: the shapes keep a clean, symmetrical feel.'});
+  T_RULES.unshift(
+    [/^Organische variatie op (.+)$/, m=>'Organic variation on '+tr(m[1])],
+    [/^Variatie op (.+)$/, m=>'Variation on '+tr(m[1])],
+    [/^(Bashoorn|Diskanthoorn|Uitsparing|Taille diskant|Taille bas|Onderbout diskant|Onderbout bas|Staart|Kop bas|Kop diskant|Kop) (\d+) mm (langer|korter|dieper|minder diep|hoger|lager|breder|smaller)$/, m=>PART[m[1]]+' '+m[2]+' mm '+ADJ[m[3]]],
+    [/^(Bashoorn|Diskanthoorn|Taille diskant) (\d+)% richting (.+)$/, m=>PART[m[1]]+' '+m[2]+'% towards '+tr(m[3])],
+    [/^Hals sluit aan bij fret (.+) \(was (.+)\)$/, m=>'Neck joins at fret '+dot(m[1])+' (was '+dot(m[2])+')'],
+    [/^staat steviger aan de riem: balans (.+) mm beter$/, m=>'hangs steadier on the strap: balance '+dot(m[1])+' mm better'],
+    [/^eerste frets (.+) mm dichter bij je hand$/, m=>'first frets '+dot(m[1])+' mm closer to your hand'],
+    [/^je hand komt tot fret (.+) \(was (.+)\)$/, m=>'your hand reaches fret '+dot(m[1])+' (was '+dot(m[2])+')'],
+    [/^lijkt minder op een (.+)$/, m=>'looks less like a '+tr(m[1])],
+    [/^body (.+) kg lichter$/, m=>'body '+dot(m[1])+' kg lighter'],
+    [/^snaarknik (.+)° in plaats van (.+)°$/, m=>'string break angle '+dot(m[1])+'° instead of '+dot(m[2])+'°'],
+    [/^(.+) mm minder snaar achter de nut$/, m=>dot(m[1])+' mm less string behind the nut'],
+    [/^kop (.+) g lichter$/, m=>'head '+dot(m[1])+' g lighter'],
+    [/^(\d+) snaarboom$/, m=>m[1]+(m[1]==='1'?' string tree':' string trees')]); }
 function tr(s){ if(!LIGHT||s==null) return s; const k=String(s).trim(); if(!k) return s; const D=EN?T_EN:T_NL; let v=D[k];
   if (v==null) v=(EN?NAME_NL2EN:NAME_EN2NL)[k];
   if (v==null){ for (const [re,f] of (EN?T_RULES:T_RULES_NL)){ const m=k.match(re); if(m){ v=f(m); break; } } }
@@ -3152,7 +3174,7 @@ function drawInsp(){ if(MB.dataset.kind&&MB.dataset.kind!=='insp') return;   // 
     <div class="ilab">Hoge frets</div><div class="chips">${chip('ghigh','1',G.high)}Alle frets bereikbaar</button>${chip('ghigh','0',!G.high)}Niet nodig</button></div>
     <div class="ilab">Karakter</div><div class="chips cells">${Object.entries(GROW_CHAR).map(([k,n])=>chip('gchar',k,G.char===k)+n+'</button>').join('')}</div>`; }
   if (m!=='mash'&&m!=='grow') o+=`<div class="ilab">${m==='goal'?'Hoe ver mag het gaan':'Wildheid'}</div><div class="chips cells">${WILD_LV.map((l,i)=>`<button data-m="wildL" data-v="${i}" class="${l===lv?'on':''}">${l.n}</button>`).join('')}</div>
-    <p class="hint">${m==='vary'?'Hoe ver een variatie van je ontwerp mag gaan. ':m==='goal'?'Hoe ver een verbetering van je ontwerp mag afwijken. ':''}${lv.txt}</p>`;
+    <p class="hint">${m==='vary'?'<span>Hoe ver een variatie van je ontwerp mag gaan.</span> ':m==='goal'?'<span>Hoe ver een verbetering van je ontwerp mag afwijken.</span> ':''}<span>${lv.txt}</span></p>`;
   if (m==='free'&&t==='body') o+=`<div class="ilab">Vormfamilie</div><div class="chips cells"><button data-m="fam" data-v="" class="${!insp.fam?'on':''}">Alle</button>${FAM_ORDER.map(k=>`<button data-m="fam" data-v="${k}" class="${insp.fam===k?'on':''}">${FAMS[k].n}</button>`).join('')}</div><p class="hint">${insp.fam?FAMS[insp.fam].t:'Alle families door elkaar. Kies een familie voor vormen die bij elkaar horen.'}</p>`;
   if ((m==='free'&&t!=='body')||m==='mash') o+=`<div class="ilab">Bronnen</div><div class="chips cells">${SRC_CATS.map(([k,n])=>`<button data-m="src" data-v="${k}" class="${insp.src[k]?'on':''}">${n}</button>`).join('')}</div>
     <p class="hint">${srcAny?'Aan: '+SRC_CATS.filter(([k])=>insp.src[k]).map(([k,n])=>`<b>${n}</b> (${SRC_TXT[k]})`).join(', ')+'.':'<span class="warn">Zet minstens één bron aan.</span>'}${m==='mash'?' Je eigen ontwerpen doen altijd mee.':''}</p>`;
@@ -3162,7 +3184,7 @@ function drawInsp(){ if(MB.dataset.kind&&MB.dataset.kind!=='insp') return;   // 
   o+=`</div><div style="margin:8px 0 10px"><span class="hint">${m==='goal'?(insp.busy?`Aan het zoeken… ${Math.round((insp.prog||0)*100)}%`:insp.items.length?'Alleen wat echt beter is en op de rest niet achteruit gaat.':'Niets gevonden dat echt beter is zonder iets anders te schaden. Kies andere doelen, of je ontwerp zit hier al goed.'):'Elke reeks toont eerst vormen die je nog niet zag.'}</span></div>`;
   o+=insp.loading?'<p class="hint" style="margin:30px 0;text-align:center">Even zoeken naar vormen die kloppen en mooi zijn… elk voorstel wordt eerst gekeurd en bijgewerkt.</p>':(!insp.items.length&&m!=='goal'?`<p class="hint" style="margin:30px 0;text-align:center">${(m==='free'||m==='mash')&&!srcAny?'Zet minstens één bron aan.':'Niets gevonden dat de keuring doorstaat. Probeer een nieuwe reeks, een andere wildheid of meer bronnen.'}</p>`:'');
   o+=`<div class="grid">${insp.items.map((d,i)=>`<div class="th ${i===insp.pick?'on':''}" data-m="pick" data-i="${i}">${thumbSVG(d,140,170,m==='goal'||m==='vary'?D():null)}<div>${esc(d.name)}</div>${m==='goal'||m==='vary'?lst('Wat verandert',d.moves)+lst('Wat het oplevert',d.gains):''}</div>`).join('')}</div>
-  <p class="hint">Tik een vorm om te kiezen, dubbeltik om hem meteen te openen. Pickups, knoppen en mechanieken worden daarna vanzelf ingepast.${m==='goal'||m==='vary'?' De stippellijn is je huidige ontwerp.':''}</p>
+  <p class="hint"><span>Tik een vorm om te kiezen. Pickups, knoppen en mechanieken worden daarna vanzelf ingepast.</span>${m==='goal'||m==='vary'?' <span>De stippellijn is je huidige ontwerp.</span>':''}</p>
   <div class="mfoot"><button data-m="roll">🎲 Nieuwe reeks</button><button class="primary" data-m="use" ${insp.pick<0?'disabled':''}>Gebruik als nieuw ontwerp</button></div>`;
   MB.innerHTML=o;
 }
