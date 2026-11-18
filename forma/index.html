@@ -622,7 +622,7 @@ function packStrip(d){ const c=clone(d); delete c.ref; if(c.bg&&JSON.stringify(c
 const isPtArr=a=>Array.isArray(a)&&a.length>0&&a.every(p=>p&&typeof p.x==='number'&&typeof p.y==='number'&&Object.keys(p).every(k=>k==='x'||k==='y'||k==='c'));
 function encPts(a){ const k=a.every(p=>Math.abs(p.x*10-Math.round(p.x*10))<1e-6&&Math.abs(p.y*10-Math.round(p.y*10))<1e-6)?10:100; let px=0,py=0; const d=[],c=[]; a.forEach((p,i)=>{ const x=Math.round(p.x*k), y=Math.round(p.y*k); d.push(x-px,y-py); px=x; py=y; if(p.c) c.push(i); }); const f=a.some(p=>p.c===false); return {d,c,f:f?1:0,k}; }
 function decPts(o){ const a=[], k=o.k||100; let x=0,y=0; for(let i=0;i<o.d.length;i+=2){ x+=o.d[i]; y+=o.d[i+1]; const p={x:x/k,y:y/k}; if(o.f||o.c.length) p.c=false; a.push(p); } o.c.forEach(i=>{ if(a[i]) a[i].c=true; }); return a; }
-function encDesign(d){ const c=packStrip(d); delete c.id; if(c.bg==null) delete c.bg; delete c.sig;
+function encDesign(d){ const c=packStrip(d); delete c.id; delete c.lock; if(c.bg==null) delete c.bg; delete c.sig;
   const def=(c.type==='body'?defaultBody():defaultHead(true)).set, st={}; for(const k in c.set){ if(JSON.stringify(c.set[k])!==JSON.stringify(def[k])) st[k]=c.set[k]; } c.set=st;
   if(c.set.pg&&!c.set.pg.edited&&c.set.pg.pts) c.set.pg={...c.set.pg,pts:null};
   if(c.set.pg&&isPtArr(c.set.pg.pts)){ c.set.pg={...c.set.pg,P:encPts(c.set.pg.pts)}; delete c.set.pg.pts; }
@@ -650,9 +650,14 @@ async function importFromHash(){ const m=location.hash.match(/[#&]d=([A-Za-z0-9_
     try { history.replaceState(null,'',pubBase()); } catch(e){}
     const same=lib.designs.find(x=>!x.ref&&x.type==='body'&&JSON.stringify(x.pts)===JSON.stringify(o.b.pts));
     if (same){ lib.tab='body'; lib.active.body=same.id; if(typeof hideWelcome==='function') hideWelcome(); switchDesign(); toast(tr('Dit ontwerp staat al bij je ontwerpen')); return true; }
-    const b=migrate(o.b); b.id=uid(); delete b.ref;
-    if (o.h&&Array.isArray(o.h.pts)){ const h=migrate(o.h); h.id=uid(); delete h.ref; b.set.head=h.id; lib.designs.push(h); lib.active.headstock=h.id; }
-    lib.designs.push(b); lib.active.body=b.id; lib.tab='body'; if(o.r) lib.view.rnd={...(lib.view.rnd||{}),...o.r};
+    const b=migrate(o.b); b.id=uid(); delete b.ref; delete b.lock;
+    if (o.h&&Array.isArray(o.h.pts)){ const h=migrate(o.h); h.id=uid(); delete h.ref; delete h.lock; b.set.head=h.id; lib.designs.push(h); lib.active.headstock=h.id; }
+    lib.designs.push(b); lib.active.body=b.id;
+    if (!LIGHT){ // 18/11/2026: klantlink = vast origineel + werkversie ernaast
+      const dt=new Date(), ds=dt.getDate()+'/'+(dt.getMonth()+1), base=b.name;
+      const w=clone(b); w.id=uid(); w.name=workName(base);
+      if (o.h&&b.set.head){ const h0=lib.designs.find(x=>x.id===b.set.head); if(h0){ const h2=clone(h0); h2.id=uid(); h2.name=workName(h0.name); h0.lock=true; h0.name+=' — origineel '+ds; w.set.head=h2.id; lib.designs.push(h2); lib.active.headstock=h2.id; } }
+      b.lock=true; b.name=base+' — origineel '+ds; lib.designs.push(w); lib.active.body=w.id; } lib.tab='body'; if(o.r) lib.view.rnd={...(lib.view.rnd||{}),...o.r};
     saveNow(); if(typeof hideWelcome==='function') hideWelcome(); switchDesign(); toast(tr('Ontwerp geopend: ')+b.name); return true;
   } catch(e){ toast(tr('Deze link kan ik niet openen')); return false; } }
 async function shareDesign(){ const L=await designLink(); if(!L) return; const text=(EN?'My guitar design, made with ':'Mijn gitaarontwerp, gemaakt met ')+PUB_NAME;
@@ -1022,7 +1027,7 @@ const CMP=matchMedia('(max-width:900px),(max-height:520px)');
 if (CMP.matches && matchMedia('(pointer:coarse)').matches && !lib.view.cmpInit){ lib.view.cmpInit=true; lib.view.grid=false; lib.view.dims=false; lib.view.wline=false; }
 function setMenu(on){ const b=document.body; if(b.classList.contains('menu')===!!on) return; b.classList.toggle('menu',!!on); resize(); render(); }
 function setSheet(on){ document.body.classList.toggle('sheet',!!on); pillUI(); fit(); if(lib.view.sheet!==!!on){ lib.view.sheet=!!on; save(); } }
-function pillUI(){ const on=document.body.classList.contains('sheet'), p=$('#pill'); if(!p) return; p.textContent=on?'▾':'▴ Instellingen'; $('#pillUse').style.display=(D().ref&&!on)?'':'none'; }
+function pillUI(){ const on=document.body.classList.contains('sheet'), p=$('#pill'); if(!p) return; p.textContent=on?'▾':'▴ Instellingen'; const pu=$('#pillUse'); pu.style.display=((D().ref||D().lock)&&!on)?'':'none'; pu.textContent=D().ref?tr('Gebruik als startpunt'):'🔒 Bewerk een kopie'; }
 let saveT = null;
 function save(){
   clearTimeout(saveT);
@@ -1046,8 +1051,8 @@ function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('sho
 const D = () => lib.designs.find(d=>d.id===lib.active[lib.tab]);
 let editPG=false;
 function T(){ const d=D(); if (editPG && d.type==='body' && d.set.pg.style!=='none' && d.set.pg.pts) return {pts:d.set.pg.pts, sym:false, tension:d.tension, isPG:true}; return d; }
-const locked = () => !!D().ref;
-function lockMsg(){ toast('Referentievorm is vergrendeld. Klik "Gebruik als startpunt" om ermee te werken.'); }
+const locked = () => !!(D().ref||D().lock);
+function lockMsg(){ if(D().lock&&!D().ref){ toast('🔒 Vastgezet. Tik op "Bewerk een kopie", of maak los via Meer… → Vastzetten/losmaken.'); return; } toast('Referentievorm is vergrendeld. Klik "Gebruik als startpunt" om ermee te werken.'); }
 
 // ================= ongedaan maken =================
 // Elke echte wijziging wordt vanzelf een stap: wat op het ontwerp verandert, is terug te draaien, per ontwerp apart en ook na herstarten.
@@ -1986,7 +1991,7 @@ function glide(from){ if(!from||!from.length) return; const t0=performance.now()
 function sel_(bind,lab,opts,extra=''){ return `<div class="row"><label>${lab}</label><select data-bind="${bind}" ${extra}>${Object.entries(opts).map(([k,v])=>`<option value="${k}">${Array.isArray(v)?v[0]:(v&&v.n)?v.n:v}</option>`).join('')}</select></div>`; }
 function optionsFor(type,excl,selId){
   const own=lib.designs.filter(x=>x.type===type&&!x.ref&&x.id!==excl), refs=lib.designs.filter(x=>x.type===type&&x.ref&&x.id!==excl);
-  const o=x=>`<option value="${x.id}" ${x.id===selId?'selected':''}>${esc(x.name)}</option>`;
+  const o=x=>`<option value="${x.id}" ${x.id===selId?'selected':''}>${x.lock?'🔒 ':''}${esc(x.name)}</option>`;
   const isR=x=>REF_ROUGH.includes(x.id.slice(4)), nat=refs.filter(x=>/^ref-(h-)?n-/.test(x.id)), rough=refs.filter(isR), cls=refs.filter(x=>!/^ref-(h-)?n-/.test(x.id)&&!isR(x));
   return `<optgroup label="Mijn ontwerpen">${own.map(o).join('')}</optgroup><optgroup label="Klassiekers (referentie)">${cls.map(o).join('')}</optgroup>${nat.length?`<optgroup label="Natuur &amp; architectuur">${nat.map(o).join('')}</optgroup>`:''}${rough.length?`<optgroup label="Ruwe benaderingen (van foto)">${rough.map(o).join('')}</optgroup>`:''}`;
 }
@@ -2843,14 +2848,16 @@ $('#more').addEventListener('change',e=>{ const a=e.target.value; e.target.value
 function runAct(a,t){ const d=D();
   switch(a){
     case 'new': { const n=lib.tab==='body'?defaultBody():defaultHead(); const nm=prompt('Naam van het nieuwe ontwerp:', n.name); if(nm===null) return; n.name=nm||n.name; lib.designs.push(n); lib.active[lib.tab]=n.id; switchDesign(); break; }
-    case 'dup': { const n=clone(d); n.id=uid(); n.set.lefty=isLeft(d); delete n.ref; if(d.ref) instFix(n); n.name=d.ref ? 'Mijn '+d.name : copyName(d.name); lib.designs.push(n); if(d.type==='headstock'){ const bb=lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'&&!x.ref); if(bb&&bb.set.head===d.id) bb.set.head=n.id; } lib.active[lib.tab]=n.id; switchDesign(); toast('Kopie gemaakt: je kunt nu alles aanpassen'); break; }
+    case 'dup': { const n=clone(d); n.id=uid(); n.set.lefty=isLeft(d); delete n.ref; delete n.lock; if(d.ref) instFix(n); n.name=d.ref ? 'Mijn '+d.name : (d.lock ? workName(d.name) : copyName(d.name)); if(d.lock&&d.type==='body'){ const hh=lib.designs.find(x=>x.id===d.set.head); if(hh&&hh.lock){ const h2=clone(hh); h2.id=uid(); delete h2.lock; h2.name=workName(hh.name); lib.designs.push(h2); n.set.head=h2.id; } } lib.designs.push(n); if(d.type==='headstock'){ const bb=lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'&&!x.ref); if(bb&&bb.set.head===d.id) bb.set.head=n.id; } lib.active[lib.tab]=n.id; switchDesign(); toast('Kopie gemaakt: je kunt nu alles aanpassen'); break; }
     case 'lvlHigh': if(APP_LEVEL!=='high'){ leaving(); location.href=lvUrl('high'); } break;
     case 'lvlLight': { (async()=>{ const b=d.type==='body'?d:lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'); if(!b) return; const url=lvUrl('light')+'#d='+(await packDesign(b,partnerHead(b))); window.open(url,'_blank'); })(); break; }
     case 'openLink': { const v=prompt('Plak de link van een ontwerp (uit Forma of een mail van een klant):',''); if(!v) return; const m=String(v).match(/[#&]d=([A-Za-z0-9_-]+)/); if(!m){ toast('Daar staat geen ontwerp in'); return; } history.replaceState(null,'',pubBase()+'#d='+m[1]); importFromHash(); break; }
     case 'lvlNorm': if(APP_LEVEL!=='normaal'){ leaving(); location.href=lvUrl('normaal'); } break;
     case 'rename': { if(d.ref){ lockMsg(); return; } const nm=prompt('Nieuwe naam:', d.name); if(nm){ d.name=nm; buildPanel(); update(); } break; }
+    case 'lockT': { if(d.ref){ toast('Referentievormen staan al vast'); return; } if(d.lock){ if(!confirm(`"${d.name}" losmaken? Dan kan je het origineel weer wijzigen.`)) return; delete d.lock; toast('Losgemaakt: '+d.name); } else { d.lock=true; toast('🔒 Vastgezet: '+d.name); } saveNow(); buildPanel(); update(); break; }
     case 'del': {
       if (d.ref){ toast('Referentievormen blijven altijd in de bibliotheek'); return; }
+      if (d.lock){ toast('🔒 Vastgezet ontwerp: maak het eerst los (Meer… → Vastzetten/losmaken)'); return; }
       if (lib.designs.filter(x=>x.type===d.type&&!x.ref).length<2){ toast('Het laatste eigen ontwerp van dit type kan niet weg'); return; }
       if (!confirm(`"${d.name}" verwijderen? Dit kan niet ongedaan gemaakt worden.`)) return;
       lib.designs=lib.designs.filter(x=>x.id!==d.id); lib.active[lib.tab]=lib.designs.find(x=>x.type===lib.tab&&!x.ref).id; switchDesign(); break; }
@@ -3219,6 +3226,7 @@ function drawInsp(){ if(MB.dataset.kind&&MB.dataset.kind!=='insp') return;   // 
   MB.innerHTML=o;
 }
 // kopie van een kopie: 'X (kopie 2)' in plaats van 'X (kopie) (kopie)'
+function workName(nm){ const base=String(nm).replace(/ — origineel.*$/,'')+' — werk'; let i=1, n=base; while(lib.designs.some(x=>x.name===n)){ i++; n=base+' '+i; } return n; }
 function copyName(nm){ const base=String(nm).replace(/( \(kopie( \d+)?\))+$/,''); let i=1, n=base+' (kopie)'; while(lib.designs.some(x=>x.name===n)){ i++; n=base+` (kopie ${i})`; } return n; }
 function useDesign(d){
   // de hand ligt vast bij het maken: een ontwerp slaat nooit vanzelf om
@@ -4140,7 +4148,7 @@ switchDesign();
 if (CMP.matches && lib.view.sheet) setSheet(true);
 { const b=document.querySelector('.lvlb'); if(b){ if(LIGHT) b.textContent=''; else { b.className='lvsw'; b.innerHTML=`<button data-act="lvlNorm" class="${APP_LEVEL==='normaal'?'on':''}" title="Wat je nodig hebt om een gitaar stabiel te bouwen">Werkbank</button><button data-act="lvlHigh" class="${APP_LEVEL==='high'?'on':''}" title="Alle maten en technische details">Bouwplan</button><button data-act="lvlLight" title="Zo ziet een klant je ontwerp, in Sixto Forma">Klant ↗</button>`; } } if(!LIGHT) document.title=LV_TITLE[APP_LEVEL];
   const m=$('#more'); if(m){ if(APP_LEVEL==='light') [...m.options].forEach(o=>{ if(/saveFile|openFile/.test(o.value)) o.remove(); });
-    else m.insertAdjacentHTML('beforeend','<option value="openLink">Klantlink openen…</option><option value="lvlLight">Bekijk als klant: Sixto Forma ↗</option>'+(APP_LEVEL==='normaal'?'<option value="lvlHigh">Alle details: Forma Bouwplan ↗</option>':'<option value="lvlNorm">Eenvoudiger: Forma Werkbank ↗</option>')); } }
+    else m.insertAdjacentHTML('beforeend','<option value="lockT">🔒 Vastzetten/losmaken</option><option value="openLink">Klantlink openen…</option><option value="lvlLight">Bekijk als klant: Sixto Forma ↗</option>'+(APP_LEVEL==='normaal'?'<option value="lvlHigh">Alle details: Forma Bouwplan ↗</option>':'<option value="lvlNorm">Eenvoudiger: Forma Werkbank ↗</option>')); } }
 if (APP_LEVEL==='light') showWelcome();
 importFromHash(); window.addEventListener('hashchange',importFromHash);   // ook Werkbank en Bouwplan openen een klantlink
 </script>
