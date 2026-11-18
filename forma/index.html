@@ -2609,6 +2609,7 @@ P.addEventListener('input',e=>{
   if (b==='set.ctrl.n') v=Math.max(0,Math.min(6,Math.round(v)));
   const prevHead=(LIGHT&&el.dataset.after==='layout'&&d.type==='headstock')?{set:{layout:d.set.layout,pat:d.set.pat,auto:d.set.auto},posts:clone(d.posts)}:null;
   setP(o,p,v);
+  { const pm=/^set\.(pu[123])\.t$/.exec(b); if(pm){ const off=v==='none'; P.querySelectorAll(`[data-bind="set.${pm[1]}.d"],[data-bind="set.${pm[1]}.a"]`).forEach(x=>{ x.disabled=off; }); } } // 18/11: afstand/hoek meteen vrijgeven na type-wissel
   if (b==='view.ghost'||b==='set.wood') panelKey='';
   if (b==='set.head'&&lib.view.whole) requestAnimationFrame(fit);
   const af=el.dataset.after;
