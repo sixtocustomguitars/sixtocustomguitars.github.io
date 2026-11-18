@@ -835,7 +835,7 @@ function asInst(d,k){ if(!d||isBass(d)===(k==='b')) return d; const key=d.id+'|'
 // een P-bas oogt ± 10 % groter dan een Strat) en schuift daarna naar de halsaansluiting met de beste balans. Haalt het de keuring niet, dan blijft alles zoals het was.
 const BASS_K=1.08, bassSized=d=>!!(d._bm&&d._bm.after===JSON.stringify(d.pts));
 function bassSize(d){ if(bassSized(d)){ d.pts=d._bm.before; delete d._bm; d.set.pg.edited=false; d.set.pg.pts=null; d.set.ctrl.edited=false; fitPickups(d); refreshAuto(d); return 'Vorige maat terug'; }
-  const before=clone(d.pts), set0=clone(d.set); scalePts(d,BASS_K); widenForNeck(d);
+  const before=clone(d.pts), set0=clone(d.set); scalePts(d,BASS_K); if(isBass(d)) widenForNeck(d);   // 18/11: bij een gitaarhals (zelfde breedte) schoof widenForNeck de hoornrand 30 mm van de hals weg
   const J=jointOpts(d); if(J.ideal){ const dy=fretY(d.set,J.ideal.f)-topOf(geom(d)); d.pts.forEach(p=>{ p.y=Math.round((p.y+dy)*10)/10; }); }
   d.set.pg.edited=false; d.set.pg.pts=null; d.set.ctrl.edited=false; fitPickups(d); refreshAuto(d);
   if(bodyChecks(d).length||!neckOK(geom(d).poly)){ d.pts=before; d.set=set0; refreshAuto(d); return 'Op basmaat lukt niet met deze vorm (de keuring houdt hem tegen); alles blijft zoals het was'; }
