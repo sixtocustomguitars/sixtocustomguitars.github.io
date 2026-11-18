@@ -505,7 +505,7 @@ Object.assign(T_EN,{
  'Boven de kamer, vrij van pickups, brug en pickguard. Eerst gespiegeld; lukt dat niet, dan één aan de vrije kant.':'Above the chamber, clear of pickups, bridge and pickguard. Mirrored first; if that does not work, one on the free side.',
  'Een andere maat, breedte en kanteling, altijd binnen wat goed te bouwen is':'Another size, width and tilt, always within what builds well',
  'Tekst in morse':'Text in Morse','Meegolven met de rand':'Follow the edge','Recht':'Straight','Half mee':'Halfway','Volgt de rand':'Follows the edge','Kanteling':'Tilt','Welke kant':'Which side','Beide':'Both','Plaats':'Position',
- 'Automatisch (naast de pickups, vrij van alles)':'Automatic (next to the pickups, clear of everything)','Verspringend: bas hoger, diskant lager':'Staggered: bass side higher, treble side lower','Vrij: zelf de plek kiezen':'Free: choose the spot yourself',
+ 'Forma kiest (naast de pickups, vrij van alles)':'Forma chooses (next to the pickups, clear of everything)','Verspringend: bas hoger, diskant lager':'Staggered: bass side higher, treble side lower','Ik kies zelf de plek':'I choose the spot myself',
  'Naar buiten (+) of binnen':'Outward (+) or inward','Omhoog (+) of omlaag':'Up (+) or down','Afstand tot de middellijn':'Distance to the centre line','Hoogte boven het zadel':'Height above the saddle',
  // knoppen, schakelaar, jack, riemknoppen
  'Komen als laatste: ze zoeken plaats rond pickups, brug, klankgaten en (als je dat kiest) op de pickguard.':'They come last: they look for room around the pickups, bridge, sound holes and (if you choose so) on the pickguard.',
@@ -2091,7 +2091,7 @@ function flowRings(R,B,cx,cy,sd,f,cand){ const n=R.length; let j0=0,D=Infinity; 
 const SH_FLOW={off:'Recht',half:'Half mee',full:'Volgt de rand'};
 // plaats: in de kamer van elke vleugel, in de gekozen zone (naast de pickups, bovenbout of onderbout).
 // De tool zoekt zelf de plek die het dichtst bij die zone ligt en vrij blijft van pickups, knoppen, brug en pickguard. Te groot? Dan wordt het kleiner tot het past.
-const SH_POS={auto:'Automatisch (naast de pickups, vrij van alles)',pu:'Naast de pickups',upper:'Bovenbout',waist:'Taille',lower:'Onderbout',offset:'Verspringend: bas hoger, diskant lager',free:'Vrij: zelf de plek kiezen'};
+const SH_POS={auto:'Forma kiest (naast de pickups, vrij van alles)',pu:'Naast de pickups',upper:'Bovenbout',waist:'Taille',lower:'Onderbout',offset:'Verspringend: bas hoger, diskant lager',free:'Ik kies zelf de plek'};
 let SH_CACHE={k:'',v:null};
 function shConflicts(d,ctx,pg,rs){ const s=d.set, pts=[].concat(...rs); let n=0;
   if(ctx.pus.some(p=>pts.some(q=>rectDist(q,p.route)<5))) n++;
@@ -2122,10 +2122,17 @@ function holePolys(d){ const s=d.set, h=s.sh; if(!h||h.type==='none'||!SH_TYPES[
         for(let u=xs[0];u<=xs[xs.length-1];u+=8){ let ok=true, cf=0; for(const sd of sides){ const rs=at(FL?rot(B[sd],FL.ang(sd,sd*u,cy)):B[sd],sd*u,cy); if(!S[sd].fits(rs)){ ok=false; break; } if(useConf) cf+=shConflicts(d,ctx,pg,rs); } if(!ok) continue;
           const cost=Math.abs(cy-yT)+0.4*Math.abs(u-um)+cf*400; if(!best||cost<best.cost) best={cost,u,cy,k,cf,far:Math.abs(cy-yT)>45}; } } }
     return best; };
+  const put=(sd,k,X,Y)=>FL?flowRings(FL.RS,S[sd].base(k),X,Y,sd,fl,FL.lat[sd]):at(S[sd].base(k),X,Y);
   const useConf=pos!=='pu'; let plans=null, single=false;
   const zoneOf=sd=>pos==='offset'?(sd<0?'upper':'lower'):pos;
   if(pos==='free'){ if(h.fx==null||h.fy==null){ const b=search(want.length===2?[1,-1]:want,true,'pu')||{u:(g.maxX-g.minX)/4,cy:yPU}; h.fx=Math.round(b.u); h.fy=Math.round(b.cy); }
-    plans=want.map(sd=>({sd,b:{u:h.fx,cy:h.fy,k:1}})); }
+    plans=want.map(sd=>({sd,b:{u:h.fx,cy:h.fy,k:1}}));
+    // 18/11 (Tom, Morse op Frans ontwerp): ook bij een vrije plek blijven de gaten in de holte. Past het daar niet (meegolven buigt ze soms tot over de rand),
+    // dan zoekt Forma de dichtste plek binnen 60 mm waar het wel past, pas daarna kleiner. De ingevulde plek blijft staan; de status zegt hoeveel het verschoof.
+    const okAt=(u,cy,k)=>u>=0&&want.every(sd=>S[sd].fits(put(sd,k,sd*u,cy)));
+    if(!okAt(h.fx,h.fy,1)){ const C=[]; for(let du=-64;du<=64;du+=8) for(let dv=-64;dv<=64;dv+=8) if(Math.hypot(du,dv)<=64) C.push([du,dv]); C.sort((a,b)=>Math.hypot(a[0],a[1])-Math.hypot(b[0],b[1]));
+      let f=null; for(let k=1;k>0.44&&!f;k-=0.1) for(const [du,dv] of C){ if(okAt(h.fx+du,h.fy+dv,k)){ f={u:h.fx+du,cy:h.fy+dv,k,moved:Math.round(Math.hypot(du,dv))}; break; } }
+      if(f) plans=want.map(sd=>({sd,b:f})); } }
   if(!plans&&pos==='offset'&&want.length===2){ const free=b=>b&&b.cf===0?b:null, bB=free(search([-1],true,'upper')), bT=free(search([1],true,'lower'));
     if(bB&&bT){ const k=Math.min(bB.k,bT.k); plans=[{sd:-1,b:bB.k>k+0.01?(free(search([-1],true,'upper',k))||bB):bB},{sd:1,b:bT.k>k+0.01?(free(search([1],true,'lower',k))||bT):bT}]; }
     else { const o=bB?{sd:-1,b:bB}:bT?{sd:1,b:bT}:null; if(o){ plans=[o]; single=true; } } }
@@ -2133,8 +2140,7 @@ function holePolys(d){ const s=d.set, h=s.sh; if(!h||h.type==='none'||!SH_TYPES[
   else if(want.length===2){ const both=search([1,-1],useConf); if(both&&(both.cf===0||!useConf)) plans=[1,-1].map(sd=>({sd,b:both}));
     else { const one=[-1,1].map(sd=>({sd,b:search([sd],useConf)})).filter(o=>o.b&&o.b.cf===0).sort((a,b)=>a.b.cost-b.b.cost)[0]; if(one){ plans=[one]; single=true; } else if(both) plans=[1,-1].map(sd=>({sd,b:both})); } }
   else { const b=search(want,useConf,zoneOf(want[0])); if(b) plans=[{sd:want[0],b}]; }
-  const put=(sd,k,X,Y)=>FL?flowRings(FL.RS,S[sd].base(k),X,Y,sd,fl,FL.lat[sd]):at(S[sd].base(k),X,Y);
-  if(plans){ const nud=pos==='free'?0:1; plans.forEach(({sd,b})=>{ const {u,cy}=b; let k=b.k, rings=put(sd,k,sd*(u+nud*(h.dx||0)),cy+nud*(h.dy||0)); while(pos!=='free'&&!S[sd].fits(rings)&&k>0.45){ k-=0.03; rings=put(sd,k,sd*(u+nud*(h.dx||0)),cy+nud*(h.dy||0)); } out.push({side:sd,rings,ring:[].concat(...rings),k,fit:S[sd].fits(rings),L:L0*k,overChamber:real,single,far:!!b.far&&pos!=='auto'}); }); }
+  if(plans){ const nud=pos==='free'?0:1; plans.forEach(({sd,b})=>{ const {u,cy}=b; let k=b.k, rings=put(sd,k,sd*(u+nud*(h.dx||0)),cy+nud*(h.dy||0)); while(pos!=='free'&&!S[sd].fits(rings)&&k>0.45){ k-=0.03; rings=put(sd,k,sd*(u+nud*(h.dx||0)),cy+nud*(h.dy||0)); } out.push({side:sd,rings,ring:[].concat(...rings),k,fit:S[sd].fits(rings),L:L0*k,overChamber:real,single,far:!!b.far&&pos!=='auto',moved:b.moved||0}); }); }
   else want.forEach(sd=>{ const rings=at(S[sd].base(1),sd*((g.maxX-g.minX)/4+(h.dx||0)),yPU+(h.dy||0)); out.push({side:sd,rings,ring:[].concat(...rings),k:1,fit:false,L:L0,overChamber:real,single:false}); });
   SH_CACHE={k:key,v:out,id:d.id}; return out; }
 function holeChecks(d){ const H=holePolys(d), out=[]; if(!H.length) return out; const s=d.set, ctx=bodyCtx(d), nm=SH_TYPES[s.sh.type].n;
@@ -2156,7 +2162,7 @@ function pgHTML(){ return `<section><h2>Pickguard</h2>
 function holesHTML(){ return `<section><h2>Klankgaten</h2><div class="ideas bouw sh">${['none',...Object.keys(SH_TYPES)].map(k=>`<button class="idea" data-act="shType" data-k="${k}">${shPic(k)}${k==='none'?'Geen':SH_TYPES[k].n}</button>`).join('')}</div>
   <div id="shOpts" style="margin-top:8px"><div class="btns" style="margin-bottom:6px"><button data-act="shPlay" title="Een andere maat, breedte en kanteling, altijd binnen wat goed te bouwen is">🎲 Speel ermee</button></div>${num('set.sh.size','Lengte','mm',1)}${num('set.sh.wf','Breedte','×',0.05)}<div id="shGrill">${sel_('set.sh.gs','Vorm van het rooster',GRILL_SHAPES)}</div><div id="shMorse"><div id="shMd">${num('set.sh.md','Grootte van de punten','×',0.05)}</div>${num('set.sh.mw','Breedte van de strepen','×',0.05)}${num('set.sh.mg','Ruimte ertussen','×',0.05)}</div><div class="row" id="shTxtRow"><label>Tekst in morse</label><input type="text" data-bind="set.sh.text" maxlength="12" style="width:110px;text-transform:uppercase"></div>${sel_('set.sh.flow','Meegolven met de rand',SH_FLOW)}${num('set.sh.ang','Kanteling','°',1)}${sel_('set.sh.side','Welke kant',{both:'Beide',bass:'Bas',treble:'Diskant'})}${sel_('set.sh.pos','Plaats',SH_POS)}<div id="shNudge">${num('set.sh.dx','Naar buiten (+) of binnen','mm',1)}${num('set.sh.dy','Omhoog (+) of omlaag','mm',1)}</div><div id="shFree">${num('set.sh.fx','Afstand tot de middellijn','mm',1)}${num('set.sh.fy','Hoogte boven het zadel','mm',1)}</div><p class="hint" id="shState"></p></div></section>`; }
 function shState(d){ const H=holePolys(d); if(!H.length) return ''; const s=d.set, k=Math.min(...H.map(h=>h.k)), out=[];
-  if(s.sh.pos==='free') out.push('Op de plek die je zelf koos: de tool zoekt niet, maar waarschuwt als iets botst.');
+  if(s.sh.pos==='free'){ const mv=Math.max(...H.map(h=>h.moved||0)); out.push(mv?`Je plek viel buiten de holte: Forma schoof de klankgaten ${mv} mm op tot ze erin passen.`:'Op de plek die je zelf koos: Forma houdt ze in de holte en waarschuwt als iets botst.'); }
   else { if(H.some(h=>h.single)) out.push(`Maar één klankgat, aan de ${H[0].side>0?'diskant':'bas'}kant: gespiegeld was er geen vrije plek.`);
     else if(s.sh.pos==='offset'&&H.length===2) out.push('Verspringend: baskant hoger, diskantkant lager.');
     if(H.some(h=>h.far)) out.push('In die zone stond iets in de weg, dus staat het op de dichtstbijzijnde vrije plek.');
