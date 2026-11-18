@@ -519,7 +519,7 @@ Object.assign(T_EN,{
  'naar de mechanieken':'to the tuners','links':'left','rechts':'right','De kop (achter de nut)':'The head (behind the nut)','De hiel (body-kant)':'The heel (body side)',
  'Snaar achter de nut':'String behind the nut','Lengte vanaf nut':'Length from the nut','Breedte max.':'Max. width','Breedte bij nut':'Width at the nut','Kleinste rand rond boorgat':'Smallest edge around a hole','Grootste snaarknik na de nut':'Largest string bend after the nut','Hals bij de nut':'Neck at the nut',
  'Nulpunt (y = 0) is de nut. De kop loopt naar boven.':'Zero point (y = 0) is the nut. The head runs upward.','Maten van dit mechaniektype':'Measurements of this tuner type','Gat tot rand':'Hole to edge','Behuizing: breedte':'Housing: width','Behuizing: lengte tot knop':'Housing: length to knob',
- 'Regels (nagemeten op 14 echte koppen): alle gaten even ver van de rand (11 à 14 mm), snaar zo recht mogelijk van nut naar post, geen snaar tegen een andere post. Grijs gestippeld = behuizing achteraan.':'Rules (measured on 14 real heads): all holes equally far from the edge (11 to 14 mm), each string as straight as possible from nut to post, no string against another post. Grey dotted = housing at the back.',
+ 'Regels (nagemeten op de echte koppen in Forma): alle gaten even ver van de rand (11 à 14 mm, krapste 9,2 bij Danelectro), steek op rij 23 à 25,5 mm (Fender 23,8 à 24,4), bij 3 + 3 29 à 38 (Kluson 34,9), snaar zo recht mogelijk van nut naar post (Fender 0,4°, Les Paul 7°, op de plannen nooit meer dan 12°), geen snaar tegen een andere post. Grijs gestippeld = behuizing achteraan.':'Rules (measured on the real heads in Forma): all holes equally far from the edge (11 to 14 mm, tightest 9.2 on the Danelectro), inline spacing 23 to 25.5 mm (Fender 23.8 to 24.4), 3 + 3 29 to 38 (Kluson 34.9), each string as straight as possible from nut to post (Fender 0.4°, Les Paul 7°, never more than 12° on the plans), no string against another post. Grey dotted = housing at the back.',
  // samenvatting en technische details (Werkbank-niveau, in Forma verborgen)
  'De queeste':'The quest','Halsverbinding':'Neck joint','Stemmen':'Tuning','Nut bereiken':'Reaching the nut','Gewicht':'Weight','Eigenheid':'Own voice','🎯 Verbeter dit ontwerp':'🎯 Improve this design','blijft liggen':'stays put','ligt rustig op je been':'rests calmly on your leg',
  'Open de kop om de snaartrek te verbeteren.':'Open the head to improve the string pull.','✔ Bouwbaar: niets botst, genoeg hout rond gaten en frezingen.':'✔ Buildable: nothing collides, enough wood around holes and routes.',
@@ -761,8 +761,8 @@ function placePosts(d){
   // 14/11: de motor alleen gebruiken als de kop zelf niet vastligt (auto:false) en het resultaat de keuring haalt; anders de vaste regel.
   // Vroeger hing het van het laadmoment af: bij de Gotische boog en de Uikoepel zette de motor twee gaten bovenaan bijna op elkaar.
   if (ENGINE_READY && s.auto!==false && d.pts && d.pts.length>2){ const keep=d.posts; if(autoPosts(d) && !headChecks(d).length) return; d.posts=keep; }
-  if (s.layout === 'split'){
-    const b = Math.ceil(n/2);
+  if (s.layout === 'split' || s.layout === 'mm'){
+    const b = s.layout==='mm'&&n>=4 ? n-2 : Math.ceil(n/2);
     for (let i=0;i<n;i++){
       if (i < b) posts.push({x:-s.xoff, y:s.first + i*s.spacing, side:'R'});
       else { const k = n-1-i; posts.push({x:s.xoff, y:s.first + k*s.spacing, side:'L'}); }
@@ -1369,13 +1369,14 @@ function itemReason(ctx,items,i,pos){
     const e=distToPoly(g.poly,pos), need=Math.max(r+3, it.t==='knob'?22:14);
     if (e<need) return `te dicht bij de rand (${fmt(e)} mm, min. ${fmt(need,0)})`;
   }
-  for (let j=0;j<items.length;j++){ if(j===i) continue; const o=items[j], need=r+itemR(o,c)+(it.t==='knob'&&o.t==='knob'?6:3), dd=Math.hypot(o.x-pos.x,o.y-pos.y); if(dd<need) return `te dicht bij ${itemName(items,j)} (${fmt(dd)} mm, min. ${fmt(need,0)})`; }
+  for (let j=0;j<items.length;j++){ if(j===i) continue; const o=items[j], need=r+itemR(o,c)+(it.t==='knob'&&o.t==='knob'?KNOB_GAP:3), dd=Math.hypot(o.x-pos.x,o.y-pos.y); if(dd<need) return `te dicht bij ${itemName(items,j)} (${fmt(dd)} mm, min. ${fmt(need,0)})`; }
   if (!side){
     for (const p of ctx.pus) if (rectDist(pos,p.route)<r+3) return `te dicht bij de ${PUNAME[p.k]}pickup`;
     for (const p of ctx.pus) if (ctx.s[p.k].t==='HBR'&&Math.hypot(pos.x,pos.y-p.route.cy)<RH_R+r+3) return 'raakt de ronde opening';
     for (const b of ctx.br) if (shapeDist(pos,b)<r+2) return 'raakt de brug';
     if (rectDist(pos,ctx.neckRect)<r+3) return 'raakt de hals';
     for (const hz of ctxHoles(ctx)) if (pos.x>hz.x0-r-6&&pos.x<hz.x1+r+6&&pos.y>hz.y0-r-6&&pos.y<hz.y1+r+6&&(inside(hz.p,pos)||hz.p.some(q=>Math.hypot(q.x-pos.x,q.y-pos.y)<r+6))) return 'te dicht bij een klankgat';
+    if (it.t==='knob' && pos.y>-10 && pos.y<ctx.neckStop){ const gs=Math.abs(pos.x)-r-strHalf(ctx.s,pos.y); if(gs<SW_STR) return `ligt in de aanslagzone (${fmt(Math.max(0,gs))} mm van de buitenste snaar, min. ${SW_STR})`; }
     if (it.t==='sw') return swReason(ctx,items,pos);
   }
   return '';
@@ -1398,6 +1399,9 @@ function puReason(ctx,k,R){
 //   ES-335 zelfde blok, 63 x 63, gedraaid mee met de rand.
 // De knop die het dichtst bij de hand zit staat 70 à 94 mm van het hoge-E-zadel. Waarom: zie Vormontwerper_Kennisboek.md.
 const KNOB_E=37, KNOB_ROW=44;
+// 18/11/2026: min. 11 mm vrij tussen twee knoppen, de krapste echte (latere Flying V en SG: rijen 36 mm uit elkaar met knoppen van ± 25). Was 6.
+// Aanslagzone ook voor knoppen: tussen het zadel en het einde van de hals min. 19 mm van de buitenste snaar tot de rand van de knop (zoals de schakelaar).
+const KNOB_GAP=11;
 const KNOB_IDEAS={
   hand:{n:'Bij de hand',min:1,from:'Stratocaster',why:'Volume vooraan bij de aanslaghand, de rest in een boog langs de rand. Goed om te zwellen, maar je kunt hem raken als je hard aanslaat.',src:'Strat-plan gemeten; Dantzig (Premier Guitar)'},
   block:{n:'Blok',min:2,from:'Les Paul, ES-335',why:'Twee rijen achter de brug, uit de weg van de aanslaghand. Elke pickup kan zijn eigen volume en toon hebben.',src:'plannen Les Paul \'59 en ES-335 gemeten; Dantzig: eerder fabriek dan speler'},
@@ -1433,7 +1437,7 @@ function knobLayout(d,ctx,idea,vr){
       const r=test(ks); if(r) return r; }
     return null;
   }
-  if (idea==='fan'){ const st=Math.max(c.knobD+11,36)*k, a=0.69+(vr?vr.rot:0), ux=Math.sin(a), uy=-Math.cos(a);
+  if (idea==='fan'){ const st=Math.max(c.knobD+KNOB_GAP+1,36)*k, a=0.69+(vr?vr.rot:0), ux=Math.sin(a), uy=-Math.cos(a);
     for (let x=xb+36+(vr?vr.s*0.3:0); x<=xb+62; x+=2) for (let y0=4; y0>=-40; y0-=3){ const ks=[]; for(let j=0;j<n-1;j++) ks.push({x:x+ux*st*j,y:y0+uy*st*j}); ks.push({x,y:y0-75*k}); const r=test(ks); if(r) return r; }
     return null;
   }
@@ -1707,6 +1711,13 @@ function housing(d,g,p){
 // snaar zo recht mogelijk van nut naar post (Fender ±0°, Gibson tot ±7°), geen snaar tegen een andere post.
 const TUN_E={grover:13,kluson:11.5,inline:12.5,locking:13,mini:11,bass:17};   // gat tot rand
 const TUN_SP={grover:34,kluson:30,inline:24.5,locking:25,mini:24,bass:45};    // gangbare steek
+// 18/11/2026: het waarom per patroon (Kennisboek, deel "Mechanieken: patronen en waarom"). Hoeken gemeten op de koppen in Forma.
+const HEAD_OPTS={
+  split:{n:'3 + 3',from:'Les Paul, PRS, Flying V',why:'Korte kop met de mechanieken over twee kanten. De snaren lopen wel schuin naar hun post: 7° op het Les Paul-plan, 11° bij de Flying V. Spelers melden dat vooral de G en de D dan in de nut blijven haken; een goed gezaagde nut met wat grafiet lost dat meestal op. Een schuine kop (Gibson 14 à 17°) geeft de nodige druk op de nut.'},
+  mm:{n:'4 + 2',from:'Music Man (Silhouette, Axis, StingRay)',why:'Vier aan de baskant, twee aan de diskant: alle snaren lopen recht en de kop blijft korter dan bij zes op rij. Music Man zegt dat het stemvaster is en geen snaarbomen nodig heeft. Een gemeten plan heb ik niet; Forma plaatst de posts met dezelfde regels als bij de andere patronen.'},
+  inline:{n:'Zes op rij',from:'Stratocaster, Telecaster',why:'Elke snaar loopt recht van de nut naar zijn post (0,4° op het Strat-plan), dus geen zijdelingse wrijving in de nut. Op een rechte kop drukken B en E weinig op de nut: Fender lost dat op met een snaarboom of getrapte mechanieken (lagere posts voor D, G, B en E). Sommige bouwers vinden getrapt alleen niet genoeg.'},
+  rev:{n:'Zes op rij, omgekeerd',from:'Firebird, Washburn N4',why:'Ook rechte trek (0,4° bij de N4, 4,6° bij de Firebird), maar nu krijgen de lage snaren het langste stuk achter de nut. Bij een rechte kop geldt hetzelfde voor de druk op de nut.'}
+};
 function edgeTrack(g,side,e){
   const P=resampleClosed(g.poly,1.5), n=P.length; let A=0; P.forEach((p,i)=>{ const q=P[(i+1)%n]; A+=p.x*q.y-q.x*p.y; }); const sg=A>0?1:-1;
   const ok=P.map((p,i)=>{ const a=P[(i-1+n)%n], b=P[(i+1)%n], tx=b.x-a.x, ty=b.y-a.y, l=Math.hypot(tx,ty)||1, ix=-ty/l*sg, iy=tx/l*sg;
@@ -1748,7 +1759,8 @@ function placeSide(d,g,strs,side,xn){
   return strs.map((si,j)=>({si,p:best.ps[j]}));
 }
 function postGroups(s){ const n=s.strings, all=[...Array(n).keys()];
-  if (s.layout==='split'){ const b=Math.ceil(n/2); return [[all.slice(0,b),-1],[all.slice(b).reverse(),1]]; }
+  if (s.layout==='split'||(s.layout==='mm'&&n<4)){ const b=Math.ceil(n/2); return [[all.slice(0,b),-1],[all.slice(b).reverse(),1]]; }
+  if (s.layout==='mm'){ const b=n-2; return [[all.slice(0,b),-1],[all.slice(b).reverse(),1]]; }   // 18/11: 4 + 2 (Music Man): de lage snaren links, B en E rechts
   if (s.layout==='rev') return [[all.slice().reverse(),1]];
   return [[all,-1]]; }
 function autoPosts(d){
@@ -1770,7 +1782,7 @@ function headChecks(d){
   d.posts.forEach((p,i)=>{ const h=housing(d,g,p); if(h.covered) out.push(`Mechaniek ${i+1}: knop komt niet buiten de kop (${fmt(Math.abs(h.edge-h.end))} mm te kort)`); });
   for (let i=0;i<d.posts.length;i++) for (let j=i+1;j<d.posts.length;j++){ const a=housing(d,g,d.posts[i]), b=housing(d,g,d.posts[j]); if(a.dir===b.dir && rectGap(a.rect,b.rect)<1) out.push(`Behuizingen ${i+1} en ${j+1} raken elkaar`); }
   const wn=widthAt(g.poly,0.5); if (wn && Math.abs(wn.w-s.nutW)>1.2) out.push(`Breedte bij de nut (${fmt(wn.w)}) past niet bij de hals (${fmt(s.nutW)})`);
-  { const lay=s.layout==='custom'?headFam(d):s.layout, n=d.posts.length, h=Math.ceil(n/2); if(lay==='split'){ d.posts.forEach((p,i)=>{ if((i<h&&p.x>-2)||(i>=h&&p.x<2)) out.push(`Post ${i+1} staat aan de verkeerde kant (${h}+${n-h})`); }); for(let i=0;i<Math.floor(n/2);i++){ const dy=Math.abs(d.posts[i].y-d.posts[n-1-i].y); if(dy>28) out.push(`Post ${i+1} en ${n-i} staan ${fmt(dy,0)} mm uit elkaar in hoogte (max. 28)`); } } }   // 14/11: een 3+3-kop heeft de lage snaren links, de hoge rechts
+  { const lay=s.layout==='custom'?headFam(d):s.layout, n=d.posts.length, h=lay==='mm'&&n>=4?n-2:Math.ceil(n/2); if(lay==='mm'&&n>=4) d.posts.forEach((p,i)=>{ if((i<h&&p.x>-2)||(i>=h&&p.x<2)) out.push(`Post ${i+1} staat aan de verkeerde kant (${h}+${n-h})`); }); if(lay==='split'){ d.posts.forEach((p,i)=>{ if((i<h&&p.x>-2)||(i>=h&&p.x<2)) out.push(`Post ${i+1} staat aan de verkeerde kant (${h}+${n-h})`); }); for(let i=0;i<Math.floor(n/2);i++){ const dy=Math.abs(d.posts[i].y-d.posts[n-1-i].y); if(dy>28) out.push(`Post ${i+1} en ${n-i} staan ${fmt(dy,0)} mm uit elkaar in hoogte (max. 28)`); } } }   // 14/11: een 3+3-kop heeft de lage snaren links, de hoge rechts
   return out;
 }
 
@@ -2255,11 +2267,11 @@ function buildPanel(){
 </details>`;
   } else {
     h+=`<section><h2>Mechanieken</h2>
-      ${sel_('set.layout','Patroon',{split:'Verdeeld (3 + 3)',inline:'Op één rij (bas-kant)',rev:'Op één rij, omgekeerd (diskant-kant)',...(d.set.pat&&d.set.pat.length===d.set.strings?{custom:'Zoals het origineel'}:{})},'data-after="layout"')}
+      ${sel_('set.layout','Patroon',{split:'Verdeeld (3 + 3)',mm:'4 + 2 (Music Man)',inline:'Op één rij (bas-kant)',rev:'Op één rij, omgekeerd (diskant-kant)',...(d.set.pat&&d.set.pat.length===d.set.strings?{custom:'Zoals het origineel'}:{})},'data-after="layout"')}
       ${sel_('set.tuner','Type',TUN,'data-after="tuner"')}
       ${sel_('set.pitch','Kophoek',{0:'Recht (Fender)',10:'10° (PRS)',14:'14° (Gibson nu)',17:'17° (Gibson vroeger)'})}
       <div class="btns"><button data-act="resetPosts">Mechanieken opnieuw plaatsen</button></div>
-      <p class="hint" id="postState"></p></section>
+      <p class="hint" id="postState"></p><p class="hint" id="postWhy"></p></section>
       <details id="techBox" ${v.tech?'open':''}><summary>Technische details</summary>
       <section><h2>Maten</h2><div class="info" id="info"></div></section>
       <section><h2>Hals bij de nut</h2>
@@ -2269,7 +2281,7 @@ function buildPanel(){
       ${num('set.edge','Gat tot rand','mm',0.5,'data-after="layout" placeholder="auto"')}
       ${num('set.holeD','Diameter boorgat')}${num('set.postD','Diameter post (as)')}${num('set.minSp','Min. afstand tussen posts')}
       ${num('set.housW','Behuizing: breedte')}${num('set.housL','Behuizing: lengte tot knop')}
-      <p class="hint">Regels (nagemeten op 14 echte koppen): alle gaten even ver van de rand (11 à 14 mm), snaar zo recht mogelijk van nut naar post, geen snaar tegen een andere post. Grijs gestippeld = behuizing achteraan.</p>
+      <p class="hint">Regels (nagemeten op de echte koppen in Forma): alle gaten even ver van de rand (11 à 14 mm, krapste 9,2 bij Danelectro), steek op rij 23 à 25,5 mm (Fender 23,8 à 24,4), bij 3 + 3 29 à 38 (Kluson 34,9), snaar zo recht mogelijk van nut naar post (Fender 0,4°, Les Paul 7°, op de plannen nooit meer dan 12°), geen snaar tegen een andere post. Grijs gestippeld = behuizing achteraan.</p>
       <table class="tbl"><thead><tr><th>#</th><th>x</th><th>y</th><th>snaar langs</th></tr></thead><tbody id="postRows"></tbody></table></section>
       <section><h2>Spanstaaf</h2>${sel_('set.rod','Afstellen langs',{head:'De kop (achter de nut)',heel:'De hiel (body-kant)'},'data-after="layout"')}</section></details>`;
   }
@@ -2294,8 +2306,8 @@ function sumHTML(d,g){
   let h=`<div class="big">${fmt(L,0)} × ${fmt(B,0)} mm</div>`;
   if (d.type==='body'){ const s=d.set, dens=s.wood==='ander'?s.dens:WOODS[s.wood][1];
     h+=`<div class="sub">body blank ± ${fmt(bodyCells(g,s).solid/900,1)} kg · hals sluit aan bij fret ${fmt(yToFret(s,topOf(g)),0)}</div>`; }
-  else { const pi=pullInfo(d), lay={split:'3 + 3',inline:'6 op rij',rev:'6 op rij omgekeerd',custom:'zoals het origineel'}[d.set.layout]||'';
-    const n=d.set.strings, lb=d.set.layout==='split'?`${Math.ceil(n/2)} + ${Math.floor(n/2)}`:d.set.layout==='custom'?lay:`${n} op rij${d.set.layout==='rev'?' (omgekeerd)':''}`;
+  else { const pi=pullInfo(d), lay={split:'3 + 3',mm:'4 + 2',inline:'6 op rij',rev:'6 op rij omgekeerd',custom:'zoals het origineel'}[d.set.layout]||'';
+    const n=d.set.strings, lb=d.set.layout==='split'?`${Math.ceil(n/2)} + ${Math.floor(n/2)}`:d.set.layout==='mm'?`${n-2} + 2`:d.set.layout==='custom'?lay:`${n} op rij${d.set.layout==='rev'?' (omgekeerd)':''}`;
     h+=`<div class="sub">${lb} · snaren lopen <b class="${pi.worst<=8?'good':pi.worst<=12?'':'warn'}">${pi.word}</b> naar de mechanieken</div>`; }
   return h;
 }
@@ -2489,6 +2501,9 @@ function syncPanel(){
   $('#checks').innerHTML = (ch.length ? ch.map(t=>`<div class="warn">⚠ ${esc(t)}</div>`).join('') : `<div class="good">✔ Bouwbaar: niets botst, genoeg hout rond gaten en frezingen.</div>`)
     + adv.map(t=>`<div class="adv">ℹ ${esc(t)}</div>`).join('');
   const ps=$('#postState'); if (ps) ps.textContent = d.ref ? '' : d.set.layout==='custom' ? 'Posts staan zoals op het plan.' : d.set.auto===false ? 'Je hebt posts zelf versleept. "Opnieuw plaatsen" zet ze terug op de ideale plek.' : 'Worden automatisch geplaatst en volgen je vorm: rechte snaartrek, gelijke afstand tot de rand.';
+  { const w=$('#postWhy'); if(w){ const lay=d.set.layout==='custom'?headFam(d):d.set.layout, O=HEAD_OPTS[lay]; let t=O&&!LIGHT?`<b>${O.n}</b> (${O.from}). ${O.why}`:'';
+      if(!LIGHT&&(lay==='inline'||lay==='rev')&&!pitchOf(d)) t+=' <b>Rechte kop:</b> reken op een snaarboom voor B en E, of getrapte mechanieken.';
+      w.innerHTML=t; } }
   if (d.type==='body'){
     syncIdeas(d); { const st=$('#strapState'); if(st&&!drag) st.textContent=strapState(d); }
     const ps=$('#pgState'); if (ps) ps.textContent = d.set.pg.edited ? 'Zelf aangepast: volgt de body niet meer automatisch.' : 'Volgt de body automatisch tot je de vorm aanpast.';
@@ -2669,7 +2684,10 @@ function toggleSym(on){
   const walk=dir=>{ const r=[]; for(let i=iT;;i=(i+dir+L)%L){ r.push({...a[i]}); if(i===iB) break; } return r; };
   const A=walk(1), B=walk(-1), mean=r=>r.reduce((s,p)=>s+p.x,0)/r.length;
   let half = mean(A)>=mean(B) ? A : B;
-  half = half.map(p=>({x:Math.abs(p.x),y:p.y,c:p.c})); half[0].x=0; half[half.length-1].x=0;
+  half = half.map(p=>({x:Math.abs(p.x),y:p.y,c:p.c}));
+  // 18/11 (Tom): bij een kop ligt het laagste punt op de nuthoek, niet op de middellijn. Vroeger werd die hoek op x = 0 gezet en sloot de nut tot een punt.
+  if (half[0].x>3) half.unshift({x:0,y:half[0].y,c:true}); else half[0].x=0;
+  if (half[half.length-1].x>3) half.push({x:0,y:half[half.length-1].y,c:true}); else half[half.length-1].x=0;
   if (half.length<3) half = d.type==='body'?defaultBody().pts:defaultHead().pts;
   d.pts=half; d.sym=true; sel=-1;
 }
@@ -3031,7 +3049,8 @@ function layoutThatFits(d,prev){ if(d.type!=='headstock'||d.ref||d.set.layout===
   if(prev){ Object.assign(d.set,prev.set); d.posts=prev.posts; if(!headChecks(d).length) return 'terug'; }   // geen enkel patroon past: het vorige terug
   d.set.layout=cur; d.set.pat=null; placePosts(d); return null; }
 function headFam(d){ const P=d.posts, n=P.length; if(n<2) return 'inline'; const h=Math.ceil(n/2);
-  if (P.slice(0,h).every(p=>p.x<0)&&P.slice(h).every(p=>p.x>0)&&P[h].y>P[n-1].y) return 'split'; return P[0].y<=P[n-1].y?'inline':'rev'; }
+  if (P.slice(0,h).every(p=>p.x<0)&&P.slice(h).every(p=>p.x>0)&&P[h].y>P[n-1].y) return 'split';
+  if (n>=4&&P.slice(0,n-2).every(p=>p.x<0)&&P.slice(n-2).every(p=>p.x>0)) return 'mm'; return P[0].y<=P[n-1].y?'inline':'rev'; }
 // omtrek van diskanthoek over de top naar bashoek, met de top als herkenningspunt
 function headVec(d){
   let P=geom(d).poly.map(p=>({x:p.x,y:p.y})); let A=0; P.forEach((p,i)=>{ const q=P[(i+1)%P.length]; A+=p.x*q.y-q.x*p.y; }); if(A<0) P.reverse();
