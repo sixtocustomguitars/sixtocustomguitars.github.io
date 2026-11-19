@@ -2047,13 +2047,15 @@ const PRESETS={
 };
 const REF_FOTO=['i5t','asher','turner','h-tiger','h-turner','iceman','revstar','l5','stingray'];
 const REF_WHY={turner:'Rick Turner tekende de Model 1 klein en rond, met één humbucker in een ronde opening. De hals gaat vroeg in de body (rond fret 16), zodat je hoog bij de frets kunt. '};
+// 19/11: het kaartje "Referentievorm" ook in het Engels (stond in de Engelse Forma nog in het Nederlands)
+const LG=(nl,en)=>EN?en:nl;
 function refNote(d){ const k=d.id.slice(4);
-  if(/^(h-)?n-/.test(k)) return 'Eigen vorm uit de natuur of de architectuur, geen bestaand model. Eenvoudig gehouden: één duidelijk gebaar, hals in het midden. ';
-  if (REF_WHY[k]) return REF_WHY[k]+'Omtrek van een foto, geschaald op de mensuur (± 5 à 10 mm). ';
-  if (REF_FOTO.includes(k)) return 'Omtrek benaderd vanaf foto’s en geschaald op de gekende maten (± 5 à 10 mm). ';
-  if (d.type==='body'&&!/bass/.test(d.id)) return 'Omtrek overgetekend uit een gratis 1:1-plan (nauwkeurig tot ±1 mm). ';
-  if (d.type==='headstock'&&HEAD_PTS[d.id.slice(6)]) return 'Omtrek en mechaniekgaten overgetekend uit een gratis 1:1-plan (nauwkeurig tot ±1 mm). ';
-  return 'Een benadering van een bekende vorm. '; }
+  if(/^(h-)?n-/.test(k)) return LG('Eigen vorm uit de natuur of de architectuur, geen bestaand model. Eenvoudig gehouden: één duidelijk gebaar, hals in het midden. ','An original shape from nature or architecture, not an existing model. Kept simple: one clear gesture, neck in the middle. ');
+  if (REF_WHY[k]) return LG(REF_WHY[k]+'Omtrek van een foto, geschaald op de mensuur (± 5 à 10 mm). ','Rick Turner drew the Model 1 small and round, with one humbucker in a round opening. The neck enters the body early (around fret 16), so you can reach high up the frets. Outline from a photo, scaled to the scale length (± 5 to 10 mm). ');
+  if (REF_FOTO.includes(k)) return LG('Omtrek benaderd vanaf foto’s en geschaald op de gekende maten (± 5 à 10 mm). ','Outline approximated from photos and scaled to the known dimensions (± 5 to 10 mm). ');
+  if (d.type==='body'&&!/bass/.test(d.id)) return LG('Omtrek overgetekend uit een gratis 1:1-plan (nauwkeurig tot ±1 mm). ','Outline traced from a free 1:1 plan (accurate to ±1 mm). ');
+  if (d.type==='headstock'&&HEAD_PTS[d.id.slice(6)]) return LG('Omtrek en mechaniekgaten overgetekend uit een gratis 1:1-plan (nauwkeurig tot ±1 mm). ','Outline and tuner holes traced from a free 1:1 plan (accurate to ±1 mm). ')+(measuredHead(d)&&strCrossings(d).length?SN_GUIDE()+' ':'');
+  return LG('Een benadering van een bekende vorm. ','An approximation of a well-known shape. '); }
 const PG_STYLES={none:['Geen','Zonder pickguard'],full:['Groot','Rond de pickups, zoals een Strat'],small:['Diskant','Klein blad aan de diskantkant'],bass:['Baskant','Klein blad aan de baskant'],band:['Strook','Smalle strook rond de pickups, tot tegen de hals'],drop:['Los blad','Los blad naast de pickups, zoals een Les Paul']};
 function pgPic(k){ const pg={full:'M22 17H38C46 22 49 33 44 39H16C11 33 14 22 22 17Z',small:'M34 19C42 21 48 29 46 36H34Z',bass:'M26 19C18 21 12 29 14 36H26Z',band:'M24 11H36V40H24Z',drop:'M34 15C42 16 46 25 41 39C38 35 34 30 34 15Z'}[k];
   return `<svg viewBox="0 0 60 50"><path d="M27 0H33V12H27Z" fill="#e8e2d8" stroke="#6b6257"/><path d="M30 6C44 4 47 13 44 20C53 24 56 35 50 43C44 49 16 49 10 43C4 35 7 24 16 20C13 13 16 4 30 6Z" fill="#f4efe7" stroke="#6b6257"/>${pg?`<path d="${pg}" fill="#fff" stroke="#6b6257"/>`:''}<path d="M24 44H36" stroke="#6b6257" stroke-width="2"/></svg>`; }
@@ -2232,7 +2234,7 @@ function bouwHTML(){ const ins=k=>`<svg viewBox="0 0 60 50"><path d="M4 12H56V38
 function buildPanel(){
   const d=D(), v=lib.view; let h='';
   if (d.type==='body') h+=`<nav id="stepNav">${(APP_LEVEL==='light'?[['V','Vorm'],['2','Pickups'],['3','Pickguard'],['5','Klankgaten'],['6','Knoppen'],['7','Kop & kleur']]:[['V','Vorm'],['1','1 Hals'],['2','2 Pickups'],['3','3 Pickguard'],['4','4 Hout'],['5','5 Klankgaten'],['6','6 Knoppen'],['7','7 Kop']]).map(([k,n])=>`<button type="button" data-nav-go="${k}">${n}</button>`).join('')}</nav>`;
-  if (d.ref) h+=`<section style="background:#fff7ef"><b>🔒 Referentievorm</b><p class="hint">${refNote(d)}Om mee te vergelijken of als startpunt, niet om te kopiëren voor verkoop.</p><div class="btns"><button class="primary" data-act="dup">Gebruik als startpunt</button></div></section>`;
+  if (d.ref) h+=`<section style="background:#fff7ef"><b>🔒 ${LG('Referentievorm','Reference shape')}</b><p class="hint">${refNote(d)}${LG('Om mee te vergelijken of als startpunt, niet om te kopiëren voor verkoop.','To compare with or to start from, not to copy for sale.')}</p><div class="btns"><button class="primary" data-act="dup">Gebruik als startpunt</button></div></section>`;
   h+=`<section><div id="sum" class="sum"></div><div class="checks" id="checks"></div></section><details id="qBox" class="card" ${(v.qbox!=null?v.qbox:!CMP.matches)?'open':''}><summary>De queeste <span id="qSum" class="qsum"></span></summary><section><div id="playBox"></div></section></details>`;
   const tg=(act,opts)=>`<div class="tog" role="group">${opts.map(([k,n])=>`<button type="button" data-act="${act}" data-k="${k}">${TOG_IC[k==='g'||k==='b'?k:k]}${n}</button>`).join('')}</div>`;
   h+=`<section class="handsec"><h2>Instrument</h2><div class="togs">${tg('inst',[['g','Gitaar'],['b','Bas']])}${tg('hand',[['r','Rechtshandig'],['l','Linkshandig']])}</div>${d.type==='body'&&!d.ref?`<button type="button" class="swrow${bassSized(d)?' on':''}" data-act="bassSize" title="Optioneel: de body wordt groter en schuift naar de beste balans (ook bij een gitaar, om mee te experimenteren)"><span><b>Grotere body (basmaat)</b><small>${bassSized(d)?'Aan: tik om terug te gaan naar de vorige maat':'Groter en in balans voor een lange basmensuur'}</small></span><i></i></button>`:''}</section>`;
@@ -2466,10 +2468,14 @@ function bodyAdvice(d){
   const f=yToFret(s,topOf(g)); if (f!=null && f<14) out.push(`De hals sluit aan bij fret ${fmt(f,0)}: de hoge frets zijn moeilijk bereikbaar (meestal 16 à 19).`);
   return out;
 }
+const SN_GUIDE=()=>EN?'As on the plan, the strings run to tuners set in a fan and cross each other. On a head like this, a string guide behind the nut (a String Butler, for example) leads each string straight to its tuner.':'Zoals op het plan lopen de snaren naar mechanieken in een waaier en kruisen ze elkaar. Bij zo\'n kop leidt een snaargeleider achter de nut (bijvoorbeeld een String Butler) elke snaar recht naar zijn mechaniek.';
 function headAdvice(d){
   if (!d.posts.length) return [];
   const pi=pullInfo(d), out=[];
-  if (pi.worst>10) out.push(`Snaren lopen schuin naar hun post (tot ${fmt(pi.worst,0)}°): kans op haperen in de nut. Een smallere kop aan de nut-kant of mechanieken op één rij helpt.`);
+  // 19/11 (Tom): een kop van een plan waarop de snaren kruisen (Moderne) krijgt geen andere rij, wel de uitleg: zo'n kop vraagt een snaargeleider
+  const guide=measuredHead(d)&&strCrossings(d).length>0;
+  if (guide) out.push(SN_GUIDE());
+  if (pi.worst>10 && !guide) out.push(`Snaren lopen schuin naar hun post (tot ${fmt(pi.worst,0)}°): kans op haperen in de nut. Een smallere kop aan de nut-kant of mechanieken op één rij helpt.`);
   if (pi.eMax-pi.eMin>3 && !d.ref) out.push(`De gaten staan niet even ver van de rand (${fmt(pi.eMin,0)} tot ${fmt(pi.eMax,0)} mm). "Mechanieken opnieuw plaatsen" zet ze gelijk.`);
   return out;
 }
