@@ -571,6 +571,8 @@ T_RULES.push(
   [/^te dicht bij (knop \d+|de schakelaar|de jack)( \((.+) mm, min\. (.+)\))?$/, m=>'too close to '+(m[1]==='de schakelaar'?'the switch':m[1]==='de jack'?'the jack':m[1].replace('knop','knob'))+(m[2]?' ('+m[3]+' mm, min. '+m[4]+')':'')],
   [/^te dicht bij de rand \((.+) mm hout, min\. 4,8\)$/, m=>'too close to the edge ('+m[1]+' mm of wood, min. 4.8)'],
   [/^te dicht bij de rand \((.+) mm, min\. (.+)\)$/, m=>'too close to the edge ('+m[1]+' mm, min. '+m[2]+')'],
+  [/^Snaren (\d+) en (\d+) kruisen elkaar tussen nut en mechaniek$/, m=>'Strings '+m[1]+' and '+m[2]+' cross between nut and tuner'],
+  [/^Snaar (\d+) loopt tegen post (\d+)$/, m=>'String '+m[1]+' runs against post '+m[2]],
   [/^te dicht bij post (\d+) \((.+) mm, min\. (.+)\)$/, m=>'too close to post '+m[1]+' ('+m[2]+' mm, min. '+m[3]+')'],
   [/^Forma-vorm (\d+)$/, m=>'Forma shape '+m[1]],
   [/^(.+?) (\d+)$/, m=>{ const v=tr(m[1]); return v===m[1]?m[0]:v+' '+m[2]; }]);
@@ -996,7 +998,7 @@ mkHeadR('rick4003','4003-type baskop (Rickenbacker, 2+2)','bass',{strings:4}),
   mkHead('h-n-gotisch','Gotische boog kop (architectuur, 3+3)',[[0,214,1],[20,200,0],[34,182,0],[41,156,0],[41,110,0],[37,70,0],[30,40,0],[23,16,0],[21.5,0,1],[-21.5,0,1],[-23,16,0],[-30,40,0],[-37,70,0],[-41,110,0],[-41,156,0],[-34,182,0],[-20,200,0]],false,{tuner:'grover',layout:'split',auto:false,first:52,spacing:36,xoff:21}),
   mkHead('h-n-tulp','Tulp kop (natuur, 3+3)',[[0,192,1],[10,178,0],[18,172,0],[28,178,0],[38,188,1],[44,168,0],[43,130,0],[40,96,0],[34,62,0],[27,34,0],[22,14,0],[21.5,0,1],[-21.5,0,1],[-22,14,0],[-27,34,0],[-34,62,0],[-40,96,0],[-43,130,0],[-44,168,0],[-38,188,1],[-28,178,0],[-18,172,0],[-10,178,0]],false,{tuner:'grover',layout:'split'}),
   mkHead('h-n-deco','Art deco kop (architectuur, 3+3)',[[0,184,0],[18,184,1],[18,176,1],[32,176,1],[32,168,1],[43,168,1],[43,120,0],[40,80,0],[32,48,1],[24,24,0],[21.5,0,1],[-21.5,0,1],[-24,24,0],[-32,48,1],[-40,80,0],[-43,120,0],[-43,168,1],[-32,168,1],[-32,176,1],[-18,176,1],[-18,184,1]],false,{tuner:'grover',layout:'split'}),
-  mkHead('h-n-waaier','Waaier kop (natuur, 3+3)',[[0,182,0],[24,181,0],[46,174,1],[44,140,0],[38,100,0],[31,62,0],[25,30,0],[22,12,0],[21.5,0,1],[-21.5,0,1],[-22,12,0],[-25,30,0],[-31,62,0],[-38,100,0],[-44,140,0],[-46,174,1],[-24,181,0]],false,{tuner:'grover',layout:'split'}),
+  mkHead('h-n-waaier','Waaier kop (natuur, 3+3)',[[0,182,0],[24,181,0],[46,174,1],[44,140,0],[38,100,0],[31,62,0],[25,30,0],[22,12,0],[21.5,0,1],[-21.5,0,1],[-22,12,0],[-25,30,0],[-31,62,0],[-38,100,0],[-44,140,0],[-46,174,1],[-24,181,0]],false,{tuner:'grover',layout:'split',auto:false,xoff:17,first:49,spacing:38}),   // 19/11: vaste rij (17 mm uit het midden, 49/87/125 mm): de rand volgen liet snaar 2 tegen post 1 lopen (0,8 mm vrij, Les Paul 1,7)
   mkHead('h-n-ui','Uikoepel kop (architectuur, 3+3)',[[0,220,1],[8,211,0],[20,202,0],[34,190,0],[41,172,0],[40,154,0],[34,142,1],[38,124,0],[39,86,0],[33,52,0],[26,26,0],[22,10,0],[21.5,0,1],[-21.5,0,1],[-22,10,0],[-26,26,0],[-33,52,0],[-39,86,0],[-38,124,0],[-34,142,1],[-40,154,0],[-41,172,0],[-34,190,0],[-20,202,0],[-8,211,0]],false,{tuner:'grover',layout:'split',auto:false,first:52,spacing:36,xoff:21}),
   mkHead('h-n-blad','Blad kop (natuur, 3+3)',[[18,200,1],[34,184,0],[42,158,0],[44,122,0],[40,88,0],[33,58,0],[26,36,0],[22.5,18,0],[21.5,0,1],[-21.5,0,1],[-22.5,18,0],[-28,40,0],[-37,68,0],[-43,104,0],[-44,142,0],[-38,172,0],[-22,192,0],[0,199,0]],false,{tuner:'kluson',layout:'split'}),
   mkHead('h-n-vlam','Vlam kop (natuur, 3+3)',[[-34,200,1],[-14,186,0],[10,175,0],[31,158,0],[41,132,0],[41,100,0],[35,70,0],[27,42,0],[22.5,18,0],[21.5,0,1],[-21.5,0,1],[-22.5,18,0],[-27,42,0],[-35,70,0],[-41,102,0],[-42,138,0],[-40,170,0],[-37,190,0]],false,{tuner:'grover',layout:'split'}),
@@ -1731,15 +1733,22 @@ function edgeTrack(g,side,e){
   return {P:best,s,L:s[s.length-1]};
 }
 function trackAt(T,t){ const s=T.s; let lo=0,hi=s.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(s[m]<=t) lo=m; else hi=m; } const u=(t-s[lo])/((s[hi]-s[lo])||1); return lerpP(T.P[lo],T.P[hi],Math.max(0,Math.min(1,u))); }
+// 19/11 (Tom, Zwaan kop): twee snaren mogen elkaar tussen de nut en hun post nooit kruisen. De rand volgen gaf bij een S-vormige kop posten die terugbuigen.
+function segCross(a,b,c,e){ const o=(p,q,t)=>Math.sign((q.x-p.x)*(t.y-p.y)-(q.y-p.y)*(t.x-p.x)); return o(a,b,c)*o(a,b,e)<0 && o(c,e,a)*o(c,e,b)<0; }
+function strSeg(p,xs,r){ return [{x:xs,y:0},{x:p.x+(p.x<xs?r:-r),y:p.y}]; }
+// Ook: een snaar blijft minstens 1,5 mm vrij van elke andere post die hij voorbij loopt (anders ligt hij ertegen).
+const STR_FREE=1.5;
+function strCrossings(d){ const s=d.set, xn=stringXsNut(s), r=s.postD/2, P=d.posts, S=P.map((p,i)=>xn[i]==null?null:strSeg(p,xn[i],r)), out=[];
+  for(let i=0;i<S.length;i++) for(let j=i+1;j<S.length;j++) if(S[i]&&S[j]&&segCross(S[i][0],S[i][1],S[j][0],S[j][1])) out.push([i,j,'x']);
+  for(let i=0;i<S.length;i++) for(let j=0;j<P.length;j++){ if(i===j||!S[i]||P[j].y>P[i].y) continue; if(segDist(P[j],S[i][0],S[i][1])<r+STR_FREE) out.push([i,j,'t']); }
+  return out; }
+// gemeten patronen van echte koppen (layout custom met pat) worden niet herschikt; die toetst de keuring apart
+const measuredHead=d=>d.set.layout==='custom'&&!!d.set.pat;
 function pullAngle(p,xs,r){ const tx=p.x+(p.x<xs?r:-r); return Math.atan2(tx-xs,p.y)*180/Math.PI; }
 function placeSide(d,g,strs,side,xn){
   const s=d.set, k=strs.length, r=s.postD/2, mn=s.minSp, ideal=Math.max(mn,TUN_SP[s.tuner]||mn), e0=s.edge||TUN_E[s.tuner]||12.5;
   const yMin=s.rod==='head'?44:34, rr=rodRect(d); let cands=[];
-  for (const e of [e0,e0+1.5,e0-1]){
-    const T=edgeTrack(g,side,e); if(!T) continue;
-    const dsHi=k>1?Math.min(ideal*1.45,T.L/(k-1)):mn+1;
-    for (let ds=mn+1; ds<=Math.max(mn+1,dsHi)+1e-6; ds+=0.5) for (let s0=0; s0+ds*(k-1)<=T.L+1e-6; s0+=1){
-      const ps=strs.map((_,j)=>trackAt(T,s0+j*ds)); let c=2*(e-e0)**2+0.06*(ds-ideal)**2+0.004*s0;
+  const score=(ps,base)=>{ let c=base;
       if (ps[0].y<yMin) c+=40*(yMin-ps[0].y)**2;
       for (let j=1;j<k;j++){ const dd=Math.hypot(ps[j].x-ps[j-1].x,ps[j].y-ps[j-1].y); if(dd<mn+0.3) c+=200*(mn+0.3-dd)**2; }
       for (let j=0;j<k;j++){ const p=ps[j], xs=xn[strs[j]], a=pullAngle(p,xs,r), A=Math.abs(a);
@@ -1747,8 +1756,16 @@ function placeSide(d,g,strs,side,xn){
         if (rr && rectDist(p,rr)<s.holeD/2+3) c+=1e4;
         const tp={x:p.x+(p.x<xs?r:-r),y:p.y}, a0={x:xs,y:0};
         for (let m=0;m<k;m++){ if(m===j) continue; const q=ps[m]; if(q.y>p.y+r) continue; const cl=segDist(q,a0,tp)-r; if(cl<2.5) c+=120*(2.5-cl)**2; } }
-      cands.push({c,ps});
-    }
+      for (let j=0;j<k;j++){ const A=strSeg(ps[j],xn[strs[j]],r); for (let m=0;m<k;m++){ if(m===j) continue;
+        if(m>j){ const B=strSeg(ps[m],xn[strs[m]],r); if(segCross(A[0],A[1],B[0],B[1])) c+=1e4; }
+        if(ps[m].y<=ps[j].y && segDist(ps[m],A[0],A[1])<r+STR_FREE) c+=1e4; } }
+      return c; };
+  for (const e of [e0,e0+1.5,e0-1]){
+    const T=edgeTrack(g,side,e); if(!T) continue;
+    const dsHi=k>1?Math.min(ideal*1.45,T.L/(k-1)):mn+1;
+    for (let ds=mn+1; ds<=Math.max(mn+1,dsHi)+1e-6; ds+=0.5) for (let s0=0; s0+ds*(k-1)<=T.L+1e-6; s0+=1){
+      const ps=strs.map((_,j)=>trackAt(T,s0+j*ds));
+      cands.push({c:score(ps,2*(e-e0)**2+0.06*(ds-ideal)**2+0.004*s0),ps}); }
   }
   if (!cands.length) return null;
   cands.sort((a,b)=>a.c-b.c);
@@ -1756,7 +1773,7 @@ function placeSide(d,g,strs,side,xn){
   const tmp={...d,posts:[]};
   for (const cd of cands.slice(0,12)){ let pen=0; for(let i=0;i<k;i++){ const h=housing(tmp,g,cd.ps[i]); if(h.covered) pen+=1e3; for(let j=i+1;j<k;j++){ const h2=housing(tmp,g,cd.ps[j]); if(h.dir===h2.dir&&rectGap(h.rect,h2.rect)<1) pen+=500; } } cd.c+=pen; }
   const best=cands.slice(0,12).sort((a,b)=>a.c-b.c)[0];
-  return strs.map((si,j)=>({si,p:best.ps[j]}));
+  const res=strs.map((si,j)=>({si,p:best.ps[j]})); res.cost=best.c; return res;
 }
 function postGroups(s){ const n=s.strings, all=[...Array(n).keys()];
   if (s.layout==='split'||(s.layout==='mm'&&n<4)){ const b=Math.ceil(n/2); return [[all.slice(0,b),-1],[all.slice(b).reverse(),1]]; }
@@ -1765,7 +1782,10 @@ function postGroups(s){ const n=s.strings, all=[...Array(n).keys()];
   return [[all,-1]]; }
 function autoPosts(d){
   const s=d.set, n=s.strings, g=geom(d), xn=stringXsNut(s), out=Array(n);
-  for (const [strs,side] of postGroups(s)){ if(!strs.length) continue; const r=placeSide(d,g,strs,side,xn); if(!r) return false; r.forEach(({si,p})=>out[si]=p); }
+  for (const [strs,side] of postGroups(s)){ if(!strs.length) continue; let r=placeSide(d,g,strs,side,xn);
+    // 19/11: bij 3+3 (en 4+2) kan de buitenste snaar ook naar de verste post (waaierkop): alleen als dat zonder kruisen kan en de gewone volgorde niet
+    if (r && r.cost>=1e4 && strs.length>1 && (s.layout==='split'||s.layout==='mm')){ const r2=placeSide(d,g,strs.slice().reverse(),side,xn); if(r2&&r2.cost<r.cost) r=r2; }
+    if(!r) return false; r.forEach(({si,p})=>out[si]=p); }
   d.posts=out.map((p,i)=>({x:Math.round(p.x*10)/10,y:Math.round(p.y*10)/10,side:p.x>=xn[i]?'L':'R'}));
   return true;
 }
@@ -1781,6 +1801,7 @@ function headChecks(d){
   d.posts.forEach((p,i)=>{ const r=postReason(d,g,i,p); if(r) out.push(`Post ${i+1} ${r}`); });
   d.posts.forEach((p,i)=>{ const h=housing(d,g,p); if(h.covered) out.push(`Mechaniek ${i+1}: knop komt niet buiten de kop (${fmt(Math.abs(h.edge-h.end))} mm te kort)`); });
   for (let i=0;i<d.posts.length;i++) for (let j=i+1;j<d.posts.length;j++){ const a=housing(d,g,d.posts[i]), b=housing(d,g,d.posts[j]); if(a.dir===b.dir && rectGap(a.rect,b.rect)<1) out.push(`Behuizingen ${i+1} en ${j+1} raken elkaar`); }
+  if(!measuredHead(d)) strCrossings(d).forEach(([i,j,t])=>out.push(t==='x'?`Snaren ${i+1} en ${j+1} kruisen elkaar tussen nut en mechaniek`:`Snaar ${i+1} loopt tegen post ${j+1}`));
   const wn=widthAt(g.poly,0.5); if (wn && Math.abs(wn.w-s.nutW)>1.2) out.push(`Breedte bij de nut (${fmt(wn.w)}) past niet bij de hals (${fmt(s.nutW)})`);
   { const lay=s.layout==='custom'?headFam(d):s.layout, n=d.posts.length, h=lay==='mm'&&n>=4?n-2:Math.ceil(n/2); if(lay==='mm'&&n>=4) d.posts.forEach((p,i)=>{ if((i<h&&p.x>-2)||(i>=h&&p.x<2)) out.push(`Post ${i+1} staat aan de verkeerde kant (${h}+${n-h})`); }); if(lay==='split'){ d.posts.forEach((p,i)=>{ if((i<h&&p.x>-2)||(i>=h&&p.x<2)) out.push(`Post ${i+1} staat aan de verkeerde kant (${h}+${n-h})`); }); for(let i=0;i<Math.floor(n/2);i++){ const dy=Math.abs(d.posts[i].y-d.posts[n-1-i].y); if(dy>28) out.push(`Post ${i+1} en ${n-i} staan ${fmt(dy,0)} mm uit elkaar in hoogte (max. 28)`); } } }   // 14/11: een 3+3-kop heeft de lage snaren links, de hoge rechts
   return out;
