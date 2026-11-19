@@ -3231,7 +3231,7 @@ function rollInsp(){
   // eerst tonen dat er gezocht wordt, dan rekenen: elk voorstel wordt gekeurd en bijgewerkt, dat vraagt een paar tellen
   const run=insp.run; insp.items=[]; insp.loading=true; drawInsp();
   setTimeout(()=>{ if(run!==insp.run) return; const lv=wildLv(w), src=D(); REFSIG=null;
-    const mk = insp.mode==='vary' ? (amp=>vary(src,Math.min(1.4,amp/1.7))) : insp.mode==='mash' ? (()=>t==='body'?halfMashProposal():mashOK(mashDesign(randomMs(t)))) : t==='body' ? (amp=>genBody(w,amp)) : (amp=>genHead(Math.min(1.4,amp/1.7)));
+    const mk = insp.mode==='vary' ? (amp=>vary(src,Math.min(1.4,amp/1.7))) : insp.mode==='mash' ? (()=>t==='body'?(halfMashProposal()||mashOK(mashDesign(randomMs(t)))):mashOK(mashDesign(randomMs(t)))) : t==='body' ? (amp=>genBody(w,amp)) : (amp=>genHead(Math.min(1.4,amp/1.7)));
     const nov = insp.mode==='vary' ? (d=>sigDist(d,src)) : novelty;
     const mk0=mk; insp.items=fillWild(amp=>instFix(mk0(amp)),8,lv,{nov,band:insp.mode!=='mash',scale:insp.mode==='vary'?(t==='body'?3:1.3):t==='body'?1:0.8}); delete src.sig; markSeen(insp.items); insp.loading=false; drawInsp(); },40);
 }
@@ -3577,8 +3577,10 @@ function headLooks(d,strict){ try{ const g=geom(d), L=g.maxY-g.minY, nw=d.set.nu
 function halfMash(a,b){ const V=refVecs(), A=V[a], B=V[b]; if(!A||!B) return null; const top=Math.max(...A.t.map(p=>p.y)), LA=top-Math.min(...A.t.map(p=>p.y)), LB=top-Math.min(...B.b.map(p=>p.y)), L=(LA+LB)/2;
   const sc=(H,Lh)=>H.map(p=>({x:p.x,y:top+(p.y-top)*(L/Lh)})), w=H=>Math.max(...H.map(p=>Math.abs(p.x)));
   const t=sc(A.t,LA), b0=sc(B.b,LB), wa=w(t), wb=w(b0), m=(wa+wb)/2; return vecPoly({t:t.map(p=>({x:p.x*m/wa,y:p.y})),b:b0.map(p=>({x:p.x*m/wb,y:p.y}))}); }
-function halfMashProposal(){ const fk=insp.fam&&FAMS[insp.fam]?[insp.fam]:FAM_ORDER.filter(f=>f!=='natuur'); const V=refVecs();
-  for(let i=0;i<30;i++){ const pool=FAMS[pick(fk)].k.filter(k=>V[k]); if(pool.length<2) continue; const a=pick(pool), b=pick(sameCut(pool,a)); if(a===b) continue; const poly=halfMash(a,b); if(!poly) continue; const ok=finishBody(poly,12), K=[a,b]; if(!ok||!hornsOK(ok,K)||!calmAs(ok,K,true)) continue;
+function halfMashProposal(){ const V=refVecs(), on=k=>V[k]&&srcOn('ref-'+k);   // 19/11 (Tom): enkel de gekozen bronnen (was altijd klassiekers)
+  const fk0=insp.fam&&FAMS[insp.fam]?[insp.fam]:FAM_ORDER.filter(f=>f!=='natuur'||insp.src.nat||insp.src.arch), fk=fk0.filter(f=>FAMS[f].k.filter(on).length>=2);
+  if(!fk.length) return null;
+  for(let i=0;i<30;i++){ const pool=FAMS[pick(fk)].k.filter(on); if(pool.length<2) continue; const a=pick(pool), b=pick(sameCut(pool,a)); if(a===b) continue; const poly=halfMash(a,b); if(!poly) continue; const ok=finishBody(poly,12), K=[a,b]; if(!ok||!hornsOK(ok,K)||!calmAs(ok,K,true)) continue;
     const src=lib.designs.find(d=>d.id==='ref-'+a); const r=bodyFromPoly(ok,src.set,refName(a)+' × '+refName(b)); if(proposalOK(r)) return r; } return null; }
 function mashOK(d){ if(!d) return null; if(d.type==='body'){ const ok=d.ok, K=d._mk||[]; delete d.ok; delete d._mk; if(!ok) return null; try{ const poly=geom(d).poly; if(K.length&&(!hornsOK(poly,K)||!calmAs(poly,K,true))) return null; }catch(e){ return null; } return d; } return headOK(d,9)&&!headChecks(d).length&&headLooks(d,2)?d:null; }
 function mashDesign(m){
