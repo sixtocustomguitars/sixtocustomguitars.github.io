@@ -1634,6 +1634,14 @@ function autoPG0(d,ctx){
   }
   const nE=pgNeckY(d,ctx), notch=nE<yHi, nw=y=>Math.max(hw,neckHW(s,y));
   if (notch){ add(-nw(nE)-1,nE,1); add(nw(nE)+1,nE,1); add(nw(yHi)+1,yHi,1); }
+  // 22/11 (Tom: 'Body begint bij' verschuiven gaf rare vormen): stopt de pickguard onder de hals, dan loopt hij zoals bij een echte gitaar
+  // tussen de hoorns door (langs de binnenkant van de cutaways) tot tegen de hals; is de cutaway te krap, dan een tong onder de hals.
+  const XI=y=>{ const xs=hits(off,y); return xs.length>=4?[xs[1],xs[xs.length-2]]:xs.length===2?[xs[0],xs[1]]:null; };
+  let yE=yHi; if(!notch&&nE>yHi+3){ while(yE+2<=nE){ const r=XI(yE+2); if(!r||r[0]>-nw(yE+2)-3||r[1]<nw(yE+2)+3) break; yE+=2; } }
+  const tongue=!notch&&nE>yE+3, up=yE>yHi+3, nU=Math.max(2,Math.round((yE-yHi)/12));
+  const tw=y=>{ const r=XI(y), w=Math.max(nw(y)+1,pw+6+inset); return r?Math.max(nw(y)+1,Math.min(w,-r[0]-1,r[1]-1)):nw(y)+1; };   // tong: breed genoeg voor de pickups, binnen de cutaways
+  if (tongue){ add(-tw(nE),nE,1); add(tw(nE),nE,1); add(tw(yE),yE,1); }
+  if (up) ysDown(yE,yHi+2,nU).forEach((y,i)=>add(XI(y)[1],y,i===0));
   const kn=(s.ctrl.items||[]).filter(t=>(t.t==='knob'||t.t==='sw'||(t.t==='jack'&&s.ctrl.jack==='top')) && t.y-itemR(t,s.ctrl)<yLow);
   const xBr=Math.max(0,...ctx.br.map(b=>b.r!=null?b.x+b.r:b.cx+b.w/2))+5;
   const yK=kn.length?Math.min(...kn.map(t=>t.y))-s.ctrl.knobD/2-6:0;
@@ -1643,6 +1651,8 @@ function autoPG0(d,ctx){
   else ysDown(yHi,yT,N).forEach((y,i)=>add(X(y)[1],y,i===0||i===N));
   if (pg.curve){ const a=P[P.length-1], bx=X(yB)[0], my=(a.y+yB)/2, cv=Math.max(brTop+3-my,Math.min(pg.curve,(yHi-my)*0.35)); add((a.x+bx)/2,my+cv); }
   ysDown(yHi,yB,N).reverse().forEach((y,i)=>add(X(y)[0],y,i===0||i===N));
+  if (up) ysDown(yE,yHi+2,nU).reverse().forEach((y,i)=>add(XI(y)[0],y,i===nU));
+  if (tongue) add(-tw(yE),yE,1);
   if (notch) add(-nw(yHi)-1,yHi,1);
   pg.pts=P;
 }
@@ -3801,7 +3811,7 @@ function puCol(o,k,t){ let c=o['pu_'+k]||o.pu||'zwart'; if(c==='zebra'&&!ZEBRA_O
 const METAL={chroom:['Chroom',['#f4f6f7','#9aa2a8','#5d656b']],zwart:['Zwart',['#6a6a6a','#2a2a2a','#111']],goud:['Goud',['#fff1b8','#c9a24a','#7a5a1c']]};
 const JOIN={lijm:['Gelijmd'],plaat:['Geschroefd (halsplaat)']};
 // 19/11 (Tom): knoppen volgden de hardware niet (chroom gaf zwarte knoppen). Nu standaard zoals de hardware, of een eigen kleur.
-const KNOBC={hw:['Zoals de hardware'],zwart:['Zwart','#1d1b1a'],creme:['Crème','#ece2c6'],wit:['Wit','#f6f5f0'],amber:['Amber','#c77a1e']};
+const KNOBC={hw:['Zoals de hardware'],zwart:['Zwart','#1d1b1a'],creme:['Crème','#ece2c6'],wit:['Wit','#f6f5f0'],amber:['Amber','#c77a1e'],hout:['Hout','url(#kwood)']};   // 22/11 (Tom): houten knoppen
 const SWTIP={creme:['Crème','#f1ece0'],wit:['Wit','#f6f5f0'],zwart:['Zwart','#1d1b1a'],amber:['Amber','#c77a1e'],hw:['Zoals de hardware']};   // 19/11 (Tom): kleur van het schakelaarknopje
 // 19/11 (Tom): voorkant van de kop: naturel, zoals de body, of een zwarte of witte kopplaat. Leeg = zoals vroeger (effen afwerking: kleur, anders naturel).
 // 19/11 (Tom): comfortcontouren. Enkel beeld en samenvatting (met de hand afgewerkt, geen maten of mallen). Plaats zoals een Strat:
@@ -3909,7 +3919,10 @@ function guitarSVG(b,h,o){ o=o||rndOpt(); const LFT=isLeft(b); const s=b.set, g=
   d+=`<g clip-path="url(#cb)"><path d="${pth(g.segs)}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="16" filter="url(#bev)"/></g><path d="${pth(g.segs)}" fill="url(#gloss)"/>`;
   holePolys(b).forEach(h=>h.rings.forEach(r=>{ d+=`<polygon points="${poly(r)}" fill="#120c08" stroke="#000" stroke-opacity=".5" stroke-width=".8"/><polygon points="${poly(r.map(p=>({x:p.x+0.8,y:p.y-0.8})))}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width=".8"/>`; }));
   // pickguard
-  if (s.pg.style!=='none'&&s.pg.pts){ const pgg=geom(pgObj(b)); d+=`<path d="${pth(pgg.segs)}" fill="${(PG_COL[s.pg.color]||PG_COL.wit)[1]}" stroke="#000" stroke-opacity=".25" stroke-width="1.2"/>`; if(s.pg.color==='schildpad'){   /* 22/11 (Tom: zoals echte tortoise-pickguards, Fender/Gibson): doorschijnend roodbruin celluloid met diepe zwartbruine vlammen en amberkleurige lichte plekken, gemarmerd en schuin uitgerekt (ruisfilter); afgeschuinde rand van de lagen wit-zwart-wit. Vaste seed: zelfde beeld bij elke render. */
+  if (s.pg.style!=='none'&&s.pg.pts){ const pgg=geom(pgObj(b)); d+=`<path d="${pth(pgg.segs)}" fill="${(PG_COL[s.pg.color]||PG_COL.wit)[1]}" stroke="#000" stroke-opacity=".25" stroke-width="1.2"/>`; if(s.pg.color==='hout'){   /* 22/11 (Tom): houten pickguard met echte nerf, overlangs; vaste seed */
+      d+=`<filter id="wgn" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.09 0.0045" numOctaves="4" seed="5"/><feColorMatrix type="matrix" values="2.2 0 0 0 -0.6  2.2 0 0 0 -0.6  2.2 0 0 0 -0.6  0 0 0 0 1"/><feComponentTransfer><feFuncR type="table" tableValues="0.52 0.62 0.72 0.79 0.84"/><feFuncG type="table" tableValues="0.33 0.42 0.51 0.58 0.63"/><feFuncB type="table" tableValues="0.16 0.22 0.29 0.35 0.4"/></feComponentTransfer></filter>`
+        +`<clipPath id="cpg"><path d="${pth(pgg.segs)}"/></clipPath><g clip-path="url(#cpg)"><rect x="${X(pgg.minX)-40}" y="${Math.min(Y(pgg.minY),Y(pgg.maxY))-40}" width="${Math.abs(X(pgg.maxX)-X(pgg.minX))+80}" height="${Math.abs(Y(pgg.maxY)-Y(pgg.minY))+80}" filter="url(#wgn)"/><path d="${pth(pgg.segs)}" fill="url(#gloss)" opacity=".5"/></g><path d="${pth(pgg.segs)}" fill="none" stroke="#5a3a1c" stroke-width="1.2" stroke-opacity=".7"/>`; }
+    else if(s.pg.color==='schildpad'){   /* 22/11 (Tom: zoals echte tortoise-pickguards, Fender/Gibson): doorschijnend roodbruin celluloid met diepe zwartbruine vlammen en amberkleurige lichte plekken, gemarmerd en schuin uitgerekt (ruisfilter); afgeschuinde rand van de lagen wit-zwart-wit. Vaste seed: zelfde beeld bij elke render. */
       const cx=X((pgg.minX+pgg.maxX)/2), cy=Y((pgg.minY+pgg.maxY)/2), L=Math.max(pgg.maxX-pgg.minX,pgg.maxY-pgg.minY)*1.6;
       d+=`<filter id="tsn" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.032" numOctaves="5" seed="11"/><feColorMatrix type="matrix" values="2.6 0 0 0 -0.82  2.6 0 0 0 -0.82  2.6 0 0 0 -0.82  0 0 0 0 1"/><feComponentTransfer><feFuncR type="table" tableValues="0.045 0.06 0.11 0.22 0.36 0.5 0.63 0.72"/><feFuncG type="table" tableValues="0.02 0.024 0.035 0.055 0.09 0.15 0.24 0.32"/><feFuncB type="table" tableValues="0.012 0.014 0.02 0.028 0.04 0.06 0.09 0.12"/></feComponentTransfer></filter>`
         +`<clipPath id="cpg"><path d="${pth(pgg.segs)}"/></clipPath><g clip-path="url(#cpg)"><g transform="rotate(-28 ${cx} ${cy})"><rect x="${cx-L/2}" y="${cy-L/2}" width="${L}" height="${L}" filter="url(#tsn)"/></g><path d="${pth(pgg.segs)}" fill="url(#gloss)" opacity=".55"/></g>`
@@ -3940,6 +3953,7 @@ function guitarSVG(b,h,o){ o=o||rndOpt(); const LFT=isLeft(b); const s=b.set, g=
       else d+=rc(q,`fill="${fillOf(col)}" stroke="#000" stroke-opacity=".5" stroke-width=".8"`); });
     if(t==='P'){ puParts(p.cover,t).forEach((q,j)=>{ const a=(q.a||0)*Math.PI/180; [-1,1].forEach(si=>[-1,1].forEach(pi=>{ const x=si*q.w*0.24+pi*4; d+=`<circle cx="${X(q.cx+x*Math.cos(a))}" cy="${Y(q.cy+x*Math.sin(a))}" r="1.8" fill="url(#met)"/>`; })); }); return; }
     const n=s.strings, sp=Math.min(p.cover.w-14,s.spBridge); for(let i=0;i<n;i++){ const x=-sp/2+i*sp/(n-1||1), a=(p.cover.a||0)*Math.PI/180, yy=p.cover.cy+x*Math.sin(a); d+=`<circle cx="${X(x*Math.cos(a))}" cy="${Y(yy)}" r="1.6" fill="url(#met)"/>`; } });
+  if(o.knob==='hout') d+=`<linearGradient id="kwood" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="#9a6a3a"/><stop offset=".18" stop-color="#c48d55"/><stop offset=".3" stop-color="#a8733f"/><stop offset=".46" stop-color="#cf9a60"/><stop offset=".6" stop-color="#b07a44"/><stop offset=".78" stop-color="#c9935a"/><stop offset="1" stop-color="#8f5f33"/></linearGradient>`;
   (s.ctrl.items||[]).forEach(it=>{ if(it.t==='knob') d+=`<circle cx="${X(it.x)}" cy="${Y(it.y)}" r="${(s.ctrl.knobD/2-2).toFixed(1)}" fill="${(KNOBC[o.knob]||KNOBC.hw)[1]||'url(#met)'}" stroke="#000" stroke-opacity=".5"/><circle cx="${X(it.x-2)}" cy="${Y(it.y+2)}" r="${(s.ctrl.knobD/4).toFixed(1)}" fill="#fff" opacity=".12"/>`;
     else if(it.t==='sw') d+=`<circle cx="${X(it.x)}" cy="${Y(it.y)}" r="6" fill="url(#met)"/><circle cx="${X(it.x)}" cy="${Y(it.y)}" r="3" fill="${(SWTIP[o.swtip]||SWTIP.creme)[1]||'url(#met)'}" stroke="#000" stroke-opacity=".35" stroke-width=".5"/>`;
     else if(s.ctrl.jack==='top') d+=`<circle cx="${X(it.x)}" cy="${Y(it.y)}" r="9" fill="url(#met)"/><circle cx="${X(it.x)}" cy="${Y(it.y)}" r="4" fill="#111"/>`; });
