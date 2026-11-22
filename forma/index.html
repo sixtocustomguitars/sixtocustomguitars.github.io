@@ -2173,8 +2173,10 @@ function bodyOverlay(d,g){
     ctx.pus.forEach(p=>{ const bad=puReason(ctx,p.k); puParts(p.cover,s[p.k].t).forEach(q=>{ o+=rectSVG(q,`fill="#2b2b2b" fill-opacity=".55" stroke="${bad?'#c0392b':'#2b2b2b'}" stroke-width="${bad?2.5:1}"`); }); });
   }
   if (v.neck){
-    const yEnd = ctx.pocketEnd, yTop = Math.max(s.scale, g.maxY+40);
-    o+=`<polygon points="${[[-neckHW(s,yTop),yTop],[neckHW(s,yTop),yTop],[neckHW(s,yEnd),yEnd],[-neckHW(s,yEnd),yEnd]].map(p=>toS(p[0],p[1]).join(',')).join(' ')}" fill="#7a5a3a" fill-opacity=".14" stroke="#7a5a3a" stroke-width="1"/>`;
+    const yTop = Math.max(s.scale, g.maxY+40), yVis = Math.max(ctx.pocketEnd, Math.min(ctx.fbEnd, ctx.topY)), yEnd = ctx.pocketEnd, NP=(a,b)=>[[-neckHW(s,a),a],[neckHW(s,a),a],[neckHW(s,b),b],[-neckHW(s,b),b]].map(p=>toS(p[0],p[1]).join(',')).join(' ');
+    // 23/11 (Tom): wat voorbij het einde van de toets in de body loopt (halsvoet, tenon) ligt onder de top of onder de pickup: dun en gestreept, niet als zichtbare hals
+    o+=`<polygon points="${NP(yTop,yVis)}" fill="#7a5a3a" fill-opacity=".14" stroke="#7a5a3a" stroke-width="1"/>`;
+    if (yEnd<yVis-0.5) o+=`<polygon points="${NP(yVis,yEnd)}" fill="#7a5a3a" fill-opacity=".04" stroke="#7a5a3a" stroke-opacity=".5" stroke-width=".8" stroke-dasharray="4 3"/>`;
     const fbEnd=ctx.fbEnd, fbTop=s.scale; o+=`<polygon points="${[[-neckHW(s,fbTop),fbTop],[neckHW(s,fbTop),fbTop],[neckHW(s,fbEnd),fbEnd],[-neckHW(s,fbEnd),fbEnd]].map(p=>toS(p[0],p[1]).join(',')).join(' ')}" fill="#4a2c1e" fill-opacity=".1" stroke="#4a2c1e" stroke-width="1.2"/>`;
     if (fbEnd<ctx.pocketEnd-0.5){ const p=toS(neckHW(s,fbEnd)+6,(fbEnd+ctx.pocketEnd)/2); if(!CMP.matches) o+=`<text x="${p[0]}" y="${p[1]+4}" font-size="11" fill="#4a2c1e">toets op de body</text>`; }
     for (let n=1;n<=s.frets;n++){ const y=fretY(s,n), hw=neckHW(s,y), onBody=y<ctx.topY, out=y<fbEnd;
@@ -2959,7 +2961,7 @@ P.addEventListener('pointerdown',e=>{ const t=e.target.closest('[data-act=feel]'
 const holdEnd=()=>{ if(holdT){ clearInterval(holdT); holdT=null; if(holdFired) update(); } };
 window.addEventListener('pointerup',holdEnd); window.addEventListener('pointercancel',holdEnd);
 P.addEventListener('change',e=>{ if(e.target.type==='range'&&e.target.dataset.bind&&!e.target.dataset.bind.startsWith('view.')){ update(); return; } if(e.target.id!=='hwPreset') return; const k=e.target.value; e.target.value=''; const d=D(); if(!k||!PRESETS[k]||locked()) return;
-  pushUndo(); const ps=clone(PRESETS[k][1]); ps.ctrl.knobD=d.set.ctrl.knobD||25; Object.assign(d.set,ps); d.set.pg.edited=false; d.set.pg.pts=null; fitPickups(d); panelKey=''; buildPanel(); update(); toast('Opbouw: '+PRESETS[k][0]); });
+  pushUndo(); const ps=clone(PRESETS[k][1]); ps.ctrl.knobD=d.set.ctrl.knobD||25; Object.assign(d.set,ps); d.set.pg.edited=false; d.set.pg.pts=null; puToFb(d); autoPocket(d); fitPickups(d); panelKey=''; buildPanel(); update(); toast('Opbouw: '+PRESETS[k][0]); });
 function toggleSym(on){
   const d=D(); if (on===d.sym) return;
   if (!on){ d.pts=anchorsOf(d).map(p=>({x:p.x,y:p.y,c:p.c,ang:p.ang,k:p.k})); d.sym=false; sel=-1; return; }
@@ -3315,6 +3317,13 @@ function refVecs(){ if(VECS) return VECS; VECS={}; lib.designs.filter(d=>d.ref&&
 const refName=k=>{ const r=lib.designs.find(d=>d.id==='ref-'+k); return r?r.name.replace(/ \(.*\)$/,'').replace(/-type.*$/,''):k; };
 function bodyFromPoly(poly,set,name){ const d=defaultBody(); d.name=name; d.sym=false; d.pts=fitAnchors(poly,{tol:0.8}); d.set=clone(set); d.set.ctrl.edited=false; d.set.ctrl.items=[]; d.set.pg.edited=false; d.set.pg.pts=null; fitPickups(d); return d; }
 // hals- en middenpickup opschuiven tot ze passen (na een nieuwe vorm)
+// 23/11 (Tom): de halspickup hoort bij het einde van de toets, niet bij het einde van de halsvoet. De halsvoet mag onder de pickup doorlopen
+// (gelijmd: tenon onder de top); bij een geschroefde hals stopt de halsvoet vóór de pickup (autoPocket). Middenpickup schuift in verhouding mee.
+const PU_FB_GAP=3;   // mm tussen einde toets en de rand van de pickup (aanname: Strat en Les Paul liggen er vlak tegen)
+function puToFb(d){ const s=d.set, p3=s.pu3, t=PUS[p3.t]; if(!t||!t[3]) return false; const fb=fbEndY(s), a=(p3.a||0)*Math.PI/180, half=t[2]/2*Math.abs(Math.cos(a))+t[1]/2*Math.abs(Math.sin(a));
+  const nd=Math.round((fb-PU_FB_GAP-half)*2)/2, old=p3.d; if(!(nd>0)) return false;
+  if(s.pu2&&PUS[s.pu2.t]&&PUS[s.pu2.t][3]&&s.pu1&&PUS[s.pu1.t]&&PUS[s.pu1.t][3]&&old>s.pu1.d) s.pu2.d=Math.round((s.pu1.d+(s.pu2.d-s.pu1.d)*(nd-s.pu1.d)/(old-s.pu1.d))*2)/2;
+  p3.d=nd; return true; }
 function fitPickups(d){
   const items=d.set.ctrl.items; d.set.ctrl.items=[];
   for (const k of ['pu3','pu2']){
