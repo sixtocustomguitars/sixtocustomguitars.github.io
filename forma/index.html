@@ -1487,15 +1487,16 @@ function knobNovel(d,ctx,idea,vr,test){ if(!vr||vr.x==null) return null; const c
   else if(idea==='clover'){ const r=st/(2*Math.sin(Math.PI/n)); for(let j=0;j<n;j++){ const t=a+j*2*Math.PI/n; P(vr.x+r*Math.cos(t), vr.y+r*Math.sin(t)); } }
   else if(idea==='arrow'){ P(vr.x,vr.y); for(let j=1;j<n;j++){ const arm=j%2?1:-1, m=Math.ceil(j/2), t=a+arm*0.62; P(vr.x+Math.cos(t)*st*m, vr.y+Math.sin(t)*st*m); } }
   else return null;
-  const r=test(ks); return r&&knobBuildOK(d,ctx,r)?r:null; }
+  return test(ks); }
 // 22/11 (Tom: 'niet bouwbaar'): eigen knopopstellingen moeten ook als elektronica kunnen.
 // - niets in de snarenbaan en het middenblok: elke knop aan de diskantkant, buiten de snaren (zoals alle gemeten gitaren)
 // - niets tussen brug en tailpiece: de hele zone van de brugonderdelen (+ 8 mm) blijft vrij
 // - één elektronicaholte: rond elke potmeter (straal 14 mm: potmeter 24 mm + speling) en kanaaltjes ertussen; binnen de body met min. 6 mm hout,
 //   min. 3 mm hout naar elke pickupfrezing en naar de brugzone, niet in de halsvoet. Geijkt: LP, SG, ES, Strat, Tele, PRS, Explorer, Offset slagen.
+let KB_STRICT=true;
 function knobBuildOK(d,ctx,ks){ const s=d.set, xb=s.spBridge/2, R=14, poly=ctx.g.poly;   // holte rond een potmeter: 24 mm + speling
   if(ks.some(k=>k.x<xb+30)) return false;
-  { const b=ctx.pus.find(u=>u.k==='pu1')||ctx.pus[0]; if(b&&ks.some(k=>k.y>b.cover.cy+15)) return false; }   // niet hoger dan de brugpickup: daar zit de aanslaghand (zoals alle gemeten gitaren)
+  { const b=ctx.pus.find(u=>u.k==='pu1')||ctx.pus[0]; if(b&&ks.some(k=>k.y>b.cover.cy+50)) return false; }   // niet hoger dan ± de middenpickup: hoger zit de aanslaghand (Strat-volume ligt op ± 40 mm boven de brugpickup)
   const br=ctx.br.map(q=>q.r!=null?{x0:q.x-q.r,x1:q.x+q.r,y0:q.y-q.r,y1:q.y+q.r}:(()=>{ const C=rectCorners(q); return {x0:Math.min(...C.map(c=>c.x)),x1:Math.max(...C.map(c=>c.x)),y0:Math.min(...C.map(c=>c.y)),y1:Math.max(...C.map(c=>c.y))}; })());
   const BZ=br.length?{x0:Math.min(...br.map(b=>b.x0))-3,x1:Math.max(...br.map(b=>b.x1))+3,y0:Math.min(...br.map(b=>b.y0))-3,y1:Math.max(...br.map(b=>b.y1))+3}:null;
   // kanaaltjes: kortste boom tussen de knoppen; elke verbinding max. 65 mm (anders twee holtes)
@@ -1527,7 +1528,7 @@ function knobTrack(ctx,e,xMin,yMax){
 }
 function knobLayout(d,ctx,idea,vr){
   const c=d.set.ctrl, n=Math.max(0,c.n), xb=d.set.spBridge/2, k=vr?vr.k:1, E=KNOB_E+(vr?vr.e:0), s1=vr?vr.s:0;
-  const test=ks=>{ const tmp=ks.map(p=>({t:'knob',x:Math.round(p.x*2)/2,y:Math.round(p.y*2)/2})); return tmp.every((it,i)=>!itemReason(ctx,tmp,i,it))?tmp:null; };
+  const test=ks=>{ const tmp=ks.map(p=>({t:'knob',x:Math.round(p.x*2)/2,y:Math.round(p.y*2)/2})); return tmp.every((it,i)=>!itemReason(ctx,tmp,i,it))&&(!KB_STRICT||knobBuildOK(d,ctx,tmp))?tmp:null; };   // 23/11 (Tom): elke opstelling moet ook als elektronica kunnen
   if (KNOB_NEW[idea]) return knobNovel(d,ctx,idea,vr,test);
   if (idea==='block'||idea==='tri'){
     const st=(idea==='tri'?Math.max(c.knobD+20,46):Math.max(c.knobD+35,60))*k, T=knobTrack(ctx,E,xb+36,-15), rw=idea==='tri'?36:KNOB_ROW;
@@ -1557,7 +1558,11 @@ function placeKnobs(d,ctx){
   const c=d.set.ctrl, n=Math.max(0,c.n); if(!n) return [];
   let idea=ideaOf(c); if(n<(KNOB_IDEAS[idea]||KNOB_NEW[idea]).min) idea=KNOB_IDEAS.block.min<=n&&idea==='tri'?'block':'row';
   if(KNOB_NEW[idea]){ const r=c.vr&&knobLayout(d,ctx,idea,c.vr); if(r) return r; idea='row'; }   // past het eigen idee niet meer (vorm veranderd): terug naar Langs de rand
-  return (c.vr&&knobLayout(d,ctx,idea,c.vr))||knobLayout(d,ctx,idea,null)||knobLayout(d,ctx,idea,{k:1,e:-8,s:0,rot:0})||knobLayout(d,ctx,idea,{k:0.88,e:-10,s:0,rot:0});
+  const chain=id=>(id===idea&&c.vr&&knobLayout(d,ctx,id,c.vr))||knobLayout(d,ctx,id,null)||knobLayout(d,ctx,id,{k:1,e:-8,s:0,rot:0})||knobLayout(d,ctx,id,{k:0.88,e:-10,s:0,rot:0});
+  let r=chain(idea); if(r) return r;
+  // 23/11: geen bouwbare plek voor deze opstelling: een andere opstelling die wel kan, anders zoals vroeger (nooit knoppen kwijt)
+  for(const id of ['row','block','tri','hand','plate','split','fan']){ if(id===idea||n<KNOB_IDEAS[id].min) continue; r=chain(id); if(r) return r; }
+  KB_STRICT=false; try{ return chain(idea); } finally{ KB_STRICT=true; }
 }
 // beste plek per vorm (16/11): per optie een zoekgebied en een vertrekpunt uit een gemeten gitaar; binnen het gebied de plek met het meeste hout rondom.
 const SW_ORDER={toggle3:['bas','dis','knop','pu'],blade:['pu','knop','dis','bas'],plate:['plate','pu','knop','dis']};
