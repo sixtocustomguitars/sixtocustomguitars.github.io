@@ -414,7 +414,7 @@ const T_EN={'🌱 Groei':'🌱 Grow','Rond':'Round','Hoe speel je':'How do you p
   'Drie single coils, 3 knoppen (Fender-stijl)':'Three single coils, 3 knobs','Twee humbuckers, 4 knoppen (Gibson-stijl)':'Two humbuckers, 4 knobs','Eén draaibare humbucker, 4 knoppen (Turner)':'One rotating humbucker, 4 knobs','Twee single coils, Tele-stijl':'Two single coils, T-style','Humbucker + 2 single coils (modern)':'Humbucker + 2 single coils (modern)','Eén humbucker, 1 knop (strak)':'One humbucker, 1 knob (clean)','Twee P90’s, 4 knoppen':'Two P90s, 4 knobs',
   'Groot':'Large','Diskant':'Treble side','Baskant':'Bass side','Strook':'Strip','Los blad':'Floating','Zonder pickguard':'No pickguard','Klein blad aan de baskant':'Small guard on the bass side','Klein blad aan de diskantkant':'Small guard on the treble side','Los blad naast de pickups, zoals een Les Paul':'Floating guard next to the pickups','Rond de pickups, zoals een Strat':'Around the pickups','Smalle strook rond de pickups, tot tegen de hals':'Narrow strip around the pickups, up to the neck','🎲 Variatie':'🎲 Variation','Opnieuw genereren':'Generate again',
   'f-gat':'f-hole','s-gat':'s-hole','Oog':'Eye','Druppel':'Drop','Maan':'Moon','Golf':'Wave','Ruit':'Diamond','Ruiten':'Diamonds','Morse':'Morse','Vlam':'Flame','Patroon':'Pattern',
-  'Knoppen, schakelaar en jack':'Knobs, switch and jack','Meer knoppen':'More knobs','Minder knoppen':'Fewer knobs','Bij de hand':'Close at hand','Blok':'Block','Langs de rand':'Along the edge','Plaat':'Plate','Volume apart':'Volume apart','Compact':'Compact','Waaier':'Fan','✨ Nog een idee':'✨ Another idea',
+  'Knoppen, schakelaar en jack':'Knobs, switch and jack','Meer knoppen':'More knobs','Minder knoppen':'Fewer knobs','Bij de hand':'Close at hand','Blok':'Block','Langs de rand':'Along the edge','Plaat':'Plate','Volume apart':'Volume apart','Compact':'Compact','Waaier':'Fan','✨ Nog een idee':'✨ Another idea','✨ Iets nieuws':'✨ Something new','Boog':'Arc','Dwarslijn':'Cross line','Trap':'Steps','Klaver':'Clover','Pijl':'Arrow','eigen idee van Forma':'Forma\'s own idea','De knoppen in een zachte boog, zoals een hand die zich opent. Elke knop ligt even ver van de vorige.':'The knobs in a soft arc, like a hand opening. Each knob sits the same distance from the last.','Eén rechte rij die schuin door de onderbout loopt. Rustig, en je vindt elke knop op de tast.':'One straight row running at an angle across the lower bout. Calm, and you find each knob by feel.','Om beurten links en rechts van een schuine lijn. Compact, en toch heeft elke knop zijn eigen plek voor je vingers.':'Alternating left and right of a slanted line. Compact, yet every knob has its own spot for your fingers.','In een kring rond één punt. Eén kleine frezing, alles onder één hand.':'In a ring around one point. One small cavity, everything under one hand.','Twee korte armen die samenkomen in één punt. Het volume staat vooraan, in de punt.':'Two short arms meeting in one point. Volume sits up front, at the tip.','Iets nieuws vraagt minstens twee knoppen':'Something new needs at least two knobs','Op deze vorm vind ik niets nieuws dat past: kies een van de opstellingen hierboven':'I find nothing new that fits this shape: pick one of the layouts above',
   'Kop en render':'Head and render','Kop & kleur':'Head & colour','Bewerk deze kop':'Edit this head','Laatst geopende kop':'Last opened head','Mechanieken':'Tuners','Basmechanieken':'Bass tuners','Mini-mechanieken':'Mini tuners','Mechanieken opnieuw plaatsen':'Place tuners again','Kophoek':'Head angle','Recht (Fender)':'Straight','10° (PRS)':'10°','14° (Gibson nu)':'14°','17° (Gibson vroeger)':'17° (vintage)',
   'Vintage (Kluson-stijl)':'Vintage','Locking (Schaller/Sperzel-stijl)':'Locking','Modern 3+3 (Grover/Gotoh-stijl)':'Modern 3+3','Modern 6-op-rij (Gotoh/Schaller-stijl)':'Modern 6 in line','Verdeeld (3 + 3)':'Split (3 + 3)','Op één rij (bas-kant)':'In line (bass side)','Op één rij, omgekeerd (diskant-kant)':'In line, reversed (treble side)',
   'Worden automatisch geplaatst en volgen je vorm: rechte snaartrek, gelijke afstand tot de rand.':'Placed automatically and they follow your shape: straight string pull, equal distance to the edge.',
@@ -1472,7 +1472,30 @@ const KNOB_IDEAS={
   fan:{n:'Waaier',min:3,from:'Rick Turner, Model 1',why:'Een schuine lijn vanaf de brug naar de rand, en één knop erachter. De aanslaghand blijft vrij, ook op een kleine body. Turners eigen reden vond ik niet.',src:'Rick Turner, Model 1 op foto'}
 };
 const KNOB_ALIAS={diag:'hand',square:'block'};
-const ideaOf=c=>{ const k=KNOB_ALIAS[c.layout]||c.layout; return KNOB_IDEAS[k]?k:'row'; };
+const ideaOf=c=>{ const k=KNOB_ALIAS[c.layout]||c.layout; return KNOB_IDEAS[k]||KNOB_NEW[k]?k:'row'; };
+// 22/11 (Tom): ✨ geeft enkel opstellingen die je niet al als knop kunt kiezen. Eigen patronen van Forma; elk voorstel haalt dezelfde regels als de andere (itemReason: afstand, aanslagzone, hout rondom).
+const KNOB_NEW={
+  arc:{n:'Boog',min:3,from:'eigen idee van Forma',why:'De knoppen in een zachte boog, zoals een hand die zich opent. Elke knop ligt even ver van de vorige.'},
+  line:{n:'Dwarslijn',min:2,from:'eigen idee van Forma',why:'Eén rechte rij die schuin door de onderbout loopt. Rustig, en je vindt elke knop op de tast.'},
+  zig:{n:'Trap',min:3,from:'eigen idee van Forma',why:'Om beurten links en rechts van een schuine lijn. Compact, en toch heeft elke knop zijn eigen plek voor je vingers.'},
+  clover:{n:'Klaver',min:3,from:'eigen idee van Forma',why:'In een kring rond één punt. Eén kleine frezing, alles onder één hand.'},
+  arrow:{n:'Pijl',min:3,from:'eigen idee van Forma',why:'Twee korte armen die samenkomen in één punt. Het volume staat vooraan, in de punt.'}
+};
+function knobNovel(d,ctx,idea,vr,test){ if(!vr||vr.x==null) return null; const c=d.set.ctrl, n=Math.max(0,c.n), st=Math.max(c.knobD+KNOB_GAP+1,37)*(vr.k||1), a=vr.a, ks=[], P=(x,y)=>ks.push({x,y});
+  if(idea==='arc'||idea==='line'){ let x=vr.x, y=vr.y, th=a; const dt=idea==='arc'?st/(vr.r||100)*(vr.sg||1):0; for(let j=0;j<n;j++){ P(x,y); x+=st*Math.cos(th); y+=st*Math.sin(th); th+=dt; } }
+  else if(idea==='zig'){ const ux=Math.cos(a), uy=Math.sin(a), o=st*0.5; for(let j=0;j<n;j++){ const sg=j%2?1:-1; P(vr.x+ux*st*0.78*j-uy*o*sg, vr.y+uy*st*0.78*j+ux*o*sg); } }
+  else if(idea==='clover'){ const r=st/(2*Math.sin(Math.PI/n)); for(let j=0;j<n;j++){ const t=a+j*2*Math.PI/n; P(vr.x+r*Math.cos(t), vr.y+r*Math.sin(t)); } }
+  else if(idea==='arrow'){ P(vr.x,vr.y); for(let j=1;j<n;j++){ const arm=j%2?1:-1, m=Math.ceil(j/2), t=a+arm*0.62; P(vr.x+Math.cos(t)*st*m, vr.y+Math.sin(t)*st*m); } }
+  else return null;
+  return test(ks); }
+const knobDist=(A,B)=>{ if(!A||!B||A.length!==B.length) return 1e9; const f=(P,Q)=>P.reduce((s,p)=>s+Math.min(...Q.map(q=>Math.hypot(p.x-q.x,p.y-q.y))),0)/P.length; return Math.max(f(A,B),f(B,A)); };
+function knobSomethingNew(d,ctx){ const c=d.set.ctrl, n=c.n, xb=d.set.spBridge/2, ids=Object.keys(KNOB_NEW).filter(k=>n>=KNOB_NEW[k].min), R=(a,b)=>a+Math.random()*(b-a);
+  const known=Object.keys(KNOB_IDEAS).filter(k=>n>=KNOB_IDEAS[k].min).map(k=>knobLayout(d,ctx,k,null)).filter(Boolean); const cur=(c.items||[]).filter(t=>t.t==='knob'); if(cur.length) known.push(cur);
+  const poly=ctx.g.poly, got=[]; const t0=Date.now();
+  for(let i=0;i<900&&got.length<10&&Date.now()-t0<1500;i++){ const id=ids[Math.floor(Math.random()*ids.length)]; if(id===c.layout&&Math.random()<0.7) continue; const vr={x:R(xb+22,xb+150),y:R(-160,55),a:R(0,2*Math.PI),r:R(75,150),sg:Math.random()<0.5?1:-1,k:R(1,1.12)};
+    const ks=knobLayout(d,ctx,id,vr); if(!ks) continue; if(known.some(K=>knobDist(ks,K)<18)) continue;
+    const wood=Math.min(...ks.map(k=>distToPoly(poly,k))); got.push({id,vr,ks,sc:Math.min(wood,40)+Math.random()*12}); }
+  if(!got.length) return null; got.sort((a,b)=>b.sc-a.sc); return got[0]; }
 function knobTrack(ctx,e,xMin,yMax){
   const g=ctx.g, P=resampleClosed(g.poly,2), n=P.length; let A=0; P.forEach((p,i)=>{ const q=P[(i+1)%n]; A+=p.x*q.y-q.x*p.y; }); const sg=A>0?1:-1;
   const ok=P.map((p,i)=>{ const a=P[(i-1+n)%n], b=P[(i+1)%n], tx=b.x-a.x, ty=b.y-a.y, l=Math.hypot(tx,ty)||1;
@@ -1487,6 +1510,7 @@ function knobTrack(ctx,e,xMin,yMax){
 function knobLayout(d,ctx,idea,vr){
   const c=d.set.ctrl, n=Math.max(0,c.n), xb=d.set.spBridge/2, k=vr?vr.k:1, E=KNOB_E+(vr?vr.e:0), s1=vr?vr.s:0;
   const test=ks=>{ const tmp=ks.map(p=>({t:'knob',x:Math.round(p.x*2)/2,y:Math.round(p.y*2)/2})); return tmp.every((it,i)=>!itemReason(ctx,tmp,i,it))?tmp:null; };
+  if (KNOB_NEW[idea]) return knobNovel(d,ctx,idea,vr,test);
   if (idea==='block'||idea==='tri'){
     const st=(idea==='tri'?Math.max(c.knobD+20,46):Math.max(c.knobD+35,60))*k, T=knobTrack(ctx,E,xb+36,-15), rw=idea==='tri'?36:KNOB_ROW;
     if(!T) return null; const no=Math.ceil(n/2), ni=n-no;
@@ -1513,7 +1537,8 @@ function knobLayout(d,ctx,idea,vr){
 }
 function placeKnobs(d,ctx){
   const c=d.set.ctrl, n=Math.max(0,c.n); if(!n) return [];
-  let idea=ideaOf(c); if(n<KNOB_IDEAS[idea].min) idea=KNOB_IDEAS.block.min<=n&&idea==='tri'?'block':'row';
+  let idea=ideaOf(c); if(n<(KNOB_IDEAS[idea]||KNOB_NEW[idea]).min) idea=KNOB_IDEAS.block.min<=n&&idea==='tri'?'block':'row';
+  if(KNOB_NEW[idea]){ const r=c.vr&&knobLayout(d,ctx,idea,c.vr); if(r) return r; idea='row'; }   // past het eigen idee niet meer (vorm veranderd): terug naar Langs de rand
   return (c.vr&&knobLayout(d,ctx,idea,c.vr))||knobLayout(d,ctx,idea,null)||knobLayout(d,ctx,idea,{k:1,e:-8,s:0,rot:0})||knobLayout(d,ctx,idea,{k:0.88,e:-10,s:0,rot:0});
 }
 // beste plek per vorm (16/11): per optie een zoekgebied en een vertrekpunt uit een gemeten gitaar; binnen het gebied de plek met het meeste hout rondom.
@@ -2357,7 +2382,7 @@ function buildPanel(){
     h+=`<section>${step(6,'Knoppen, schakelaar en jack','Komen als laatste: ze zoeken plaats rond pickups, brug, klankgaten en (als je dat kiest) op de pickguard.')}
       <div class="fr fr1"><button data-act="knobN" data-k="-1" aria-label="Minder knoppen">−</button><span id="knobCount"></span><button data-act="knobN" data-k="1" aria-label="Meer knoppen">+</button></div>
       <div class="ideas" id="ideas"></div>
-      <div class="btns"><button data-act="knobSurprise">✨ Nog een idee</button><button data-act="autoCtrl" id="knobBack">Terug naar het idee</button></div>
+      <div class="btns"><button data-act="knobSurprise">✨ Iets nieuws</button><button data-act="autoCtrl" id="knobBack">Terug naar het idee</button></div>
       <p class="hint" id="ctrlState"></p>
       ${sel_('set.ctrl.sw','Schakelaar',{none:'Geen',toggle3:'3-weg toggle',blade3:'3-weg schuif',blade5:'5-weg schuif'},'data-after="ctrl"')}
       ${d.set.ctrl.sw!=='none'?sel_('set.ctrl.swPos','Plaats schakelaar',Object.assign({auto:'Vanzelf (beste plek)',bas:'Bovenste hoorn, baskant',dis:'Bovenste hoorn, diskant',pu:'Naast de pickups',knop:'In lijn met de knoppen'},d.set.ctrl.swPos==='zelf'?{zelf:'Zelf gekozen'}:{}),'data-after="ctrl"')+'<p class="hint" id="swHint">Sleep de schakelaar op de tekening om hem te verplaatsen.</p><p class="hint" id="swState" style="color:#b5541c"></p><div class="hint why" id="swWhy"></div>':''}
@@ -2643,7 +2668,7 @@ function syncIdeas(d){
   document.querySelectorAll('[data-act=pgStyle]').forEach(b=>b.classList.toggle('on',b.dataset.k===d.set.pg.style)); document.querySelectorAll('[data-act=inside]').forEach(b=>b.classList.toggle('on',b.dataset.k===(d.set.inside||'solid'))); document.querySelectorAll('[data-act=thick]').forEach(b=>b.classList.toggle('on',+b.dataset.k===thickNear(d.set.thick||45)));
   const c=d.set.ctrl, box=$('#ideas'); if(!box) return;
   $('#knobCount').textContent=c.n===0?'Geen knoppen':c.n===1?'1 knop':c.n+' knoppen';
-  const cur=ideaOf(c), I=KNOB_IDEAS[cur], kn=(c.items||[]).filter(x=>x.t==='knob'), xb=d.set.spBridge/2;
+  const cur=ideaOf(c), I=KNOB_IDEAS[cur]||KNOB_NEW[cur], kn=(c.items||[]).filter(x=>x.t==='knob'), xb=d.set.spBridge/2;
   const reach=kn.length?Math.min(...kn.map(k=>Math.hypot(k.x-xb,k.y))):0, word=reach<75?'dicht bij de hand':reach<110?'goed bereikbaar':'ver van de hand';
   $('#ctrlState').innerHTML=!kn.length?'':c.edited?`Zelf geschikt, volume ${word}. Sleep een knop en het groepje schuift mee. Sleep de omcirkelde en het groepje draait en spreidt.`:`<b>${I.n}</b> (${I.from}). ${I.why} Volume ${word}${APP_LEVEL==='high'?` (${fmt(reach,0)} mm van het hoge-E-zadel; Strat, Les Paul, SG, ES-335: 70 à 94)`:''}.${I.src?` <small>Bron: ${I.src}.</small>`:''}`;
   $('#knobBack').style.display=c.edited?'':'none';
@@ -3038,10 +3063,9 @@ function runAct(a,t){ const d=D();
       else if(LIGHT&&hasSh&&d.set.inside==='semi'&&sh.side!=='both'){ sh.side='both'; sh.size=SH_TYPES[sh.type].L; } panelKey=''; update(); break; }
     case 'knobN': { if(locked()){ lockMsg(); return; } const c=d.set.ctrl; pushUndo(); c.n=Math.max(0,Math.min(6,c.n+ +t.dataset.k)); c.edited=false; update(); break; }
     case 'knobSurprise': { if(locked()){ lockMsg(); return; } const c=d.set.ctrl; if(!c.n) { toast('Voeg eerst een knop toe'); return; }
-      const ctx=bodyCtx(d), ids=Object.keys(KNOB_IDEAS).filter(k=>c.n>=KNOB_IDEAS[k].min), old=clone(c.items||[]), rnd=(a,b)=>a+Math.random()*(b-a);
-      for (let i=0;i<24;i++){ const id=ids[Math.floor(Math.random()*ids.length)], vr={k:rnd(0.92,1.3),e:rnd(-2,9),s:rnd(0,30),rot:rnd(-0.28,0.28)};
-        if (knobLayout(d,ctx,id,vr)){ pushUndo(); c.layout=id; c.vr=vr; c.edited=false; update(); glide(old); return; } }
-      toast('Op deze vorm vind ik geen ander idee dat past'); break; }
+      const ctx=bodyCtx(d), old=clone(c.items||[]); if(c.n<2){ toast('Iets nieuws vraagt minstens twee knoppen'); return; }
+      const g=knobSomethingNew(d,ctx); if(g){ pushUndo(); c.layout=g.id; c.vr=g.vr; c.edited=false; update(); glide(old); toast('✨ '+tr(KNOB_NEW[g.id].n)+': '+tr(KNOB_NEW[g.id].why)); return; }
+      toast('Op deze vorm vind ik niets nieuws dat past: kies een van de opstellingen hierboven'); break; }
     case 'shPlay': { if(locked()){ lockMsg(); return; } const sh=d.set.sh; if(!sh||sh.type==='none'){ toast('Kies eerst een klankgat'); return; } pushUndo(); const keep=JSON.stringify(sh), R=(a,b)=>Math.round((a+Math.random()*(b-a))*100)/100, L0=SH_TYPES[sh.type].L;
       let ok=false; for(let i=0;i<16&&!ok;i++){ Object.assign(sh,{wf:R(0.75,1.4),ang:Math.round(R(-10,16)),size:Math.round(L0*R(0.85,1.15))}); if(sh.type==='morse') Object.assign(sh,{md:R(0.8,1.45),mw:R(0.8,1.45),mg:R(0.8,1.7)}); if(sh.type==='grill') Object.assign(sh,{mw:R(1,1.6),mg:R(1,1.6),gs:pick(Object.keys(GRILL_SHAPES)),ang:pick([0,0,90,Math.round(R(-12,12))])}); SH_CACHE={}; ok=!holeChecks(d).some(c=>/minstens|past niet|te dicht|pickguard/.test(c)); }
       if(!ok){ Object.assign(sh,JSON.parse(keep)); SH_CACHE={}; toast('Geen andere variant gevonden die goed te bouwen is'); } else toast('Nieuwe variant, binnen wat goed te bouwen is'); panelKey=''; update(); break; }
