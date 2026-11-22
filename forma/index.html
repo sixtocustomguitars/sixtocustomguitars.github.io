@@ -386,7 +386,7 @@ function lvUrl(lv){ const test=/\/(light|normaal|high)\.html$/.test(location.pat
 const LV_NAME={light:'',normaal:'Werkbank',high:'Bouwplan'}, LV_TITLE={light:'Sixto Forma',normaal:'Forma Werkbank',high:'Forma Bouwplan'};
 const PUB_NAME='Sixto Forma', PUB_MAIL='sixtocustomguitars@gmail.com', PUB_IG='https://www.instagram.com/sixtocustomguitars/';
 let LANG='nl';
-if (LIGHT){ let s=''; try { s=localStorage.getItem('sixto-forma-lang')||''; } catch(e){} LANG=s||(/^nl/i.test(navigator.language||'')?'nl':'en'); try { document.documentElement.lang=LANG; } catch(e){} }
+if (LIGHT){ let s=''; try { s=localStorage.getItem('sixto-forma-lang')||''; } catch(e){} /* 22/11 (Tom): ?lang=en of ?lang=nl in de link wint, ook bij een eerste bezoek */ try { const q=(new URLSearchParams(location.search).get('lang')||'').toLowerCase(); if(q==='en'||q==='nl'){ s=q; localStorage.setItem('sixto-forma-lang',q); } } catch(e){} LANG=s||(/^nl/i.test(navigator.language||'')?'nl':'en'); try { document.documentElement.lang=LANG; } catch(e){} }
 const EN=LANG==='en';
 const PUB_SITE=()=>EN?'https://sixtocustomguitars.github.io/':'https://sixtocustomguitars.github.io/nl/';
 const NEUTRAL={coronet:['Scheve dubbele cutaway','Offset double cut'],duojet:['Ronde single cut','Round single cut'],billybo:['Raketvorm','Rocket shape'],mockingbird:['Lange gebogen hoorn','Long curved horn'],rick4003:['Golvende hoorns','Wave horns'],strat:['S-stijl','S-style'],tele:['T-stijl','T-style'],lp:['Enkele cutaway','Single cut'],lpjdc:['Junior dubbele cutaway','Junior double cut'],sg:['Dubbele hoorn','Double horn'],es:['Dunne semi','Thinline semi'],offset:'Offset',mustang:['Korte offset','Short offset'],mm:['Slanke cutaway','Slim cut'],prs:['Moderne dubbele cutaway','Modern double cut'],super:'Super S',js:['Ronde shred','Round shred'],axis:['Compacte cutaway','Compact cut'],albertlee:['Asymmetrisch','Asymmetric'],n4:['Gebeeldhouwde shred','Sculpted shred'],toronado:'Retro offset',mosrite:['Omgekeerde surf','Surf reverse'],redspecial:['Open haard','Fireside'],explorer:['Hoekig','Angular'],v:['Pijl','Arrow'],moderne:'Modernist',turner:['Compacte boutique','Boutique compact'],asher:'Offset T',firebird:['Omgekeerd','Reverse'],iceman:['Haak','Hook'],revstar:'Café racer',l5:'Jazz archtop',i5t:['Enkele cutaway T','Single cut T'],dano59:['Retro dubbele cutaway','Retro double cut'],astrojet:['Ruimtevaart','Space age'],birdprey:['Roofvogel','Raptor'],lpjsc:['Junior enkele cutaway','Junior single cut'],b6:['Scherpe shred','Sharp shred'],supersonic:['Omgekeerde offset','Reverse offset'],rick360:['Halvemaan semi','Crescent semi'],boden:'Headless ergo',jaguar:'Offset deluxe',stingray:['Grote hoorn','Big horn'],pbass:['P-stijl bas','P-style bass'],jbass:['J-stijl bas','J-style bass'],
@@ -644,7 +644,7 @@ Object.assign(T_EN,{'Beuk (beech)':'Beech','Mix (stukken die samenwerken)':'Mix 
 Object.assign(T_NL,{'Met kamers (chambered)':'Met kamers (chambered)'});
 Object.assign(T_EN,{'Halfhol: alle klankgaten. Met kamers: één klein klankgat. Massief: geen.':'Semi-hollow: all sound holes. Chambered: one small sound hole. Solid: none.'});
 Object.assign(T_EN,{'Met kamers: één klein klankgat, de top blijft verder dicht.':'Chambered: one small sound hole, the rest of the top stays closed.','Klankgaten vragen een halfholle body: kies die bij Vorm.':'Sound holes need a semi-hollow body: choose it under Shape.'});
-Object.assign(T_EN,{'Met kamers (chambered)':'Chambered','lichter, de top blijft dicht':'lighter, the top stays closed','Met kamers: de top blijft dicht, de klankgaten zijn weg.':'Chambered: the top stays closed, the sound holes are gone.','Klankgaten vragen een deels holle body: kies die bij Vorm.':'Sound holes need a semi-hollow body: choose it under Shape.'});
+Object.assign(T_EN,{'Verborgen kamers onder een dichte top: lichter':'Hidden chambers under a closed top: lighter','🔒 Bewerk een kopie':'🔒 Edit a copy','Met kamers (chambered)':'Chambered','lichter, de top blijft dicht':'lighter, the top stays closed','Met kamers: de top blijft dicht, de klankgaten zijn weg.':'Chambered: the top stays closed, the sound holes are gone.','Klankgaten vragen een deels holle body: kies die bij Vorm.':'Sound holes need a semi-hollow body: choose it under Shape.'});
 Object.assign(T_NL,{'Klankgaten vragen een deels holle body: kies die bij Vorm.':'Klankgaten vragen een halfholle body: kies die bij Vorm.'});
 function tr(s){ if(!LIGHT||s==null) return s; const k=String(s).trim(); if(!k) return s; const D=EN?T_EN:T_NL; let v=D[k];
   if (v==null) v=(EN?NAME_NL2EN:NAME_EN2NL)[k];
@@ -660,6 +660,9 @@ if (LIGHT){
   const trAttrs=el=>{ if(!el.getAttribute) return; for (const a of ['title','aria-label','placeholder']){ const v=el.getAttribute(a); if(v){ const t=tr(v); if(t!==v) el.setAttribute(a,t); } } };
   const trTree=root=>{ if(root.nodeType===3){ const p=root.parentElement; if(!p||!SKIP.test(p.tagName)) trNode(root); return; } if(root.nodeType!==1||SKIP.test(root.tagName)) return; trAttrs(root);
     const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT); let n; while((n=w.nextNode())){ if(n.nodeType===3){ const p=n.parentElement; if(p&&SKIP.test(p.tagName)) continue; trNode(n); } else trAttrs(n); } };
+  // 22/11 (Tom: taalfouten eruit): Werkbank/Bouwplan-onderdelen (data-lv n/h) zijn in Sixto Forma altijd verborgen; hun tekst leegmaken, dan staat er nergens Nederlands in de Engelse pagina
+  let stripT=0; const lvStrip=()=>{ stripT=0; document.querySelectorAll('[data-lv="n"],[data-lv="h"]').forEach(el=>{ const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())){ if(n.textContent.trim()) n.textContent=''; } el.querySelectorAll('[title]').forEach(x=>x.removeAttribute('title')); }); };
+  if (EN) new MutationObserver(()=>{ if(!stripT) stripT=requestAnimationFrame(lvStrip); }).observe(document.documentElement,{childList:true,subtree:true});
   new MutationObserver(ms=>{ for (const m of ms){ if(m.type==='characterData') trNode(m.target); else if(m.type==='attributes') trAttrs(m.target); else m.addedNodes.forEach(trTree); } })
     .observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','aria-label','placeholder']});
   document.title=PUB_NAME+(EN?' · design your own guitar':' · ontwerp je eigen gitaar');
@@ -2584,7 +2587,7 @@ function syncPanel(){
     else if (isNumEl(el)) el.value = v==null?'':Math.round(v*10000)/10000;
     else el.value = v==null?'':v;
   });
-  $('#info').innerHTML = infoHTML(d,g); { const nb=$('#neckBox'); if(nb&&!nb.contains(document.activeElement)) nb.innerHTML=neckHTML(d,g); const sp=$('#scalePick'); if(sp&&sp!==document.activeElement){ const m=Object.keys(SCALES).find(k=>Math.abs(+k-d.set.scale)<1.5); sp.value=m||''; } } $('#sum').innerHTML = sumHTML(d,g); if(!drag) $('#playBox').innerHTML=playHTML(d); qDots(d);
+  if(!LIGHT) $('#info').innerHTML = infoHTML(d,g); { const nb=$('#neckBox'); if(nb&&!nb.contains(document.activeElement)){ nb.innerHTML=neckHTML(d,g); if(LIGHT) nb.querySelectorAll('.row').forEach(r=>{ if(!r.querySelector('input,select,button')) r.remove(); }); } const sp=$('#scalePick'); if(sp&&sp!==document.activeElement){ const m=Object.keys(SCALES).find(k=>Math.abs(+k-d.set.scale)<1.5); sp.value=m||''; } } /* 22/11: in Sixto Forma (light) zijn deze Werkbank-panelen verborgen; niet vullen, dan staat er geen Nederlands in de Engelse pagina */ if(!LIGHT){ $('#sum').innerHTML = sumHTML(d,g); if(!drag) $('#playBox').innerHTML=playHTML(d); } qDots(d);
   const ch = d.type==='body' ? bodyChecks(d) : headChecks(d), adv = d.type==='body' ? bodyAdvice(d) : headAdvice(d);
   $('#pill').classList.toggle('warn',ch.length>0);
   if(LIGHT){ const sw=$('#stageWarn'); if(sw){ const z=d.type==='body'?sizeOf(d):null, soft=!ch.length&&z&&outBy(z,SIZE_OK)>0; sw.classList.toggle('soft',!!soft); if(soft){ sw.classList.add('on'); sw.textContent=(z.w<SIZE_OK.w[0]||z.l<SIZE_OK.l[0])?LG('Klein, maar bouwbaar.','Small, but buildable.'):LG('Groot, maar bouwbaar.','Big, but buildable.'); } else { sw.classList.toggle('on',ch.length>0); sw.textContent=ch.length?(d.type==='body'?LG('Iets past niet meer op de body (rood). Maak hem groter, of sleep het rode onderdeel terug.','Something no longer fits on the body (red). Make it bigger, or drag the red part back.'):LG('De kop klopt nog niet (rood). Maak hem groter, of tik op Mechanieken opnieuw plaatsen.','The head is not right yet (red). Make it bigger, or tap Place tuners again.')):''; } } }
@@ -2595,7 +2598,7 @@ function syncPanel(){
       if(!LIGHT&&(lay==='inline'||lay==='rev')&&!pitchOf(d)) t+=' <b>Rechte kop:</b> reken op een snaarboom voor B en E, of getrapte mechanieken.';
       w.innerHTML=t; } }
   if (d.type==='body'){
-    syncIdeas(d); { const st=$('#strapState'); if(st&&!drag) st.textContent=strapState(d); }
+    syncIdeas(d); { const st=$('#strapState'); if(st&&!drag&&!LIGHT) st.textContent=strapState(d); }
     const ps=$('#pgState'); if (ps) ps.textContent = d.set.pg.edited ? 'Zelf aangepast: volgt de body niet meer automatisch.' : 'Volgt de body automatisch tot je de vorm aanpast.';
   }
   $('#designSel').innerHTML = optionsFor(lib.tab,null,d.id);
@@ -3853,7 +3856,10 @@ function bigsbySVG(q,X0,Y0){ const X=v=>+X0(v), Y=v=>+Y0(v); const y0=q.cy+q.h/2
   o+=`<rect x="${X(-wf+3).toFixed(1)}" y="${Y(y0-5).toFixed(1)}" width="${(X(wf-3)-X(-wf+3)).toFixed(1)}" height="${(Y(y0-13)-Y(y0-5)).toFixed(1)}" rx="3" fill="url(#met)" stroke="#000" stroke-opacity=".4" stroke-width=".6"/>`;
   o+=`<path d="M${P(wf-4,y0-16)} Q${P(wf+22,y0+20)} ${P(wf+30,y0+92)}" fill="none" stroke="#8d969c" stroke-width="4" stroke-linecap="round"/><circle cx="${X(wf+30).toFixed(1)}" cy="${Y(y0+92).toFixed(1)}" r="5" fill="#f2efe8" stroke="#555" stroke-width=".6"/>`;
   return o; }
-function rndOpt(b){ const r=lib.view.rnd||(lib.view.rnd={}); const o=Object.assign({fin:'tpaars',board:'pal',neck:'mlam',metal:'chroom',pu:'zwart',join:'lijm',knob:'hw',swtip:'creme',arm:'nee',belly:'nee'},r); if(!HEADC[o.headc]) o.headc=['zwart','wit','rood','blauw','groen'].includes(o.fin)?'body':'hout'; if(b&&b.set&&b.set.join) o.join=b.set.join; o.neck='mlam'; /* 19/11 (Tom): hals altijd multi-lam */ return o; }
+// 22/11 (Tom): de startkleur is willekeurig (was altijd Rupes-paars); één keer gekozen, daarna blijft ze tot je zelf kiest
+const START_FIN=()=>Object.keys(FINISH).filter(k=>FINISH[k][2]==='t'&&k!=='stwhite');
+const pickFin=(n,not=[])=>{ const a=START_FIN().filter(k=>!not.includes(k)), out=[]; while(out.length<n&&a.length) out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]); return out; };
+function rndOpt(b){ const r=lib.view.rnd||(lib.view.rnd={}); if(!r.fin||!FINISH[r.fin]) r.fin=pickFin(1)[0]||'tgroen'; const o=Object.assign({fin:'tgroen',board:'pal',neck:'mlam',metal:'chroom',pu:'zwart',join:'lijm',knob:'hw',swtip:'creme',arm:'nee',belly:'nee'},r); if(!HEADC[o.headc]) o.headc=['zwart','wit','rood','blauw','groen'].includes(o.fin)?'body':'hout'; if(b&&b.set&&b.set.join) o.join=b.set.join; o.neck='mlam'; /* 19/11 (Tom): hals altijd multi-lam */ return o; }
 function guitarSVG(b,h,o){ o=o||rndOpt(); const LFT=isLeft(b); const s=b.set, g=geom(b), ctx=bodyCtx(b), hg=h?geom(h):null, sc=s.scale;
   const minX=Math.min(g.minX,hg?hg.minX:0)-30, maxX=Math.max(g.maxX,hg?hg.maxX:0)+30, minY=g.minY-30, maxY=(hg?sc+hg.maxY:sc+40)+30, W=maxX-minX, H=maxY-minY;
   const X=x=>(x-minX).toFixed(2), Y=y=>(maxY-y).toFixed(2), P=(x,y)=>X(x)+','+Y(y);
@@ -4240,7 +4246,7 @@ const BASS_OK={}; function bassOK(r){ if(BASS_OK[r.id]==null){ try{ const d=clon
     let ok=neckOK(geom(d).poly)&&ctx.br.every(b=>b.r!=null?inside(ctx.g.poly,{x:b.x,y:b.y})&&distToPoly(ctx.g.poly,{x:b.x,y:b.y})>=b.r+4:rectInBody(b,ctx.g.poly,4));
     for(let y=ctx.pocketEnd+2;ok&&y<ctx.topY-3;y+=6){ const h=neckHW(d.set,y)-1, xs=hits(ctx.g.poly,y); if(xs.length<2||xs[0]>-h||xs[xs.length-1]<h) ok=false; } BASS_OK[r.id]=ok; }catch(e){ BASS_OK[r.id]=false; } } return BASS_OK[r.id]; }
 // 21/11 (review P2): het eindbeeld meteen tonen, drie gitaren uit de gekozen familie in kleur
-const HERO_FIN=['tpaars','stteal','tgroen'];
+const HERO_FIN=pickFin(3); // 22/11 (Tom): elke keer drie andere kleuren
 function heroHTML(list){ try{ return '<div class="whero" aria-hidden="true">'+list.slice(0,3).map((r,i)=>{ const b=JSON.parse(JSON.stringify(r)); delete b.ref; delete b.lock; const h=partnerHead(r); const o=Object.assign(rndOpt(b),{fin:HERO_FIN[i]}); return guitarSVG(b,h,o).svg; }).join('')+'</div>'; }catch(e){ return ''; } }
 function showWelcome(){ const BAS=instPref()==='b', own=lib.designs.filter(x=>!x.ref&&x.type==='body'&&!(/^Nieuwe body$/.test(x.name)&&!(hist[x.id]&&hist[x.id].u.length))), refs=lib.designs.filter(x=>x.ref&&x.type==='body'&&!/bass/.test(x.id)&&!REF_ROUGH.includes(x.id.slice(4))&&(!BAS||bassOK(x)));
   const fam=(lib.view.wfam&&FAMS[lib.view.wfam])?lib.view.wfam:'single', famRefs=FAMS[fam].k.map(k=>refs.find(x=>x.id==='ref-'+k)).filter(Boolean);
