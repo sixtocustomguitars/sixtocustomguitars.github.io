@@ -3485,6 +3485,7 @@ let REFSIG=null;
 const FAIRS={}; function refFair(k){ if(!FAIRS[k]){ const r=lib.designs.find(d=>d.id==='ref-'+k); FAIRS[k]=r?shapeFair(geom(r)):{E:3,flips:8}; } return FAIRS[k]; }
 // rustig als de bron: niet meer keren dat de lijn van richting wisselt, en niet meer onrust dan de bronnen hebben
 function calmAs(poly,keys,extra){ const f=shapeFair({poly}), P=keys.map(refFair); return f.flips<=Math.max(...P.map(x=>x.flips))+(extra?1:0)&&f.E<=Math.max(...P.map(x=>x.E))*(extra?1.35:1.15); }
+const DENTS={}; function refDents(k){ if(DENTS[k]==null){ const r=lib.designs.find(d=>d.id==='ref-'+k); DENTS[k]=r?shapeDents(geom(r).poly):0; } return DENTS[k]; }
 const LOBES={}; function refLobes(k){ if(LOBES[k]==null){ const r=lib.designs.find(d=>d.id==='ref-'+k); LOBES[k]=r?lobeInfo(geom(r).poly).lobes:MAX_LOBES; } return LOBES[k]; }
 // wat je al te zien kreeg, per tab en soort (en per ontwerp bij variaties en verbeteringen): een nieuwe reeks toont eerst verse vormen
 const SEEN={};
@@ -3510,15 +3511,16 @@ function genBodyIn(w,amp){ const V=refVecs(); let pool=bodyPool(), org0=insp.org
   if(single){ for(let i=0;i<10;i++){ const k=pick(pool), src=lib.designs.find(d=>d.id==='ref-'+k); if(!src) continue; const L0=refLobes(k)+(amp>1.5?1:0), K=[k];
       let m=clone(src); const rounds=1+Math.floor(amp*1.2+Math.random()*amp); for(let r=0;r<rounds;r++){ const q=moveCandidate(m,Math.min(1.6,0.25+amp*0.6)); if(q) m=q; }
       let poly=geom(m).poly; const org=false;
-      const ok=finishBody(poly,L0); if(ok&&calmAs(ok,K,amp>1.5)&&hornsOK(ok,K)) { const r=bodyFromPoly(ok,src.set,refName(k)+(org?', organisch':', bijgestuurd')); if(okInst(r)) return r; } } }
+      const ok=finishBody(poly,L0); if(ok&&calmAs(ok,K,amp>1.5)&&hornsOK(ok,K)&&shapeDents(ok)<=refDents(k)) {   /* 22/11: ook bijgestuurd nooit bobbeliger dan de bron */ const r=bodyFromPoly(ok,src.set,refName(k)+(org?', organisch':', bijgestuurd')); r._dl=refDents(k); if(okInst(r)) return r; } } }
   pool=pool.filter(k=>!NO_MIX.includes(k));   // schelp en art deco: wel bijsturen, niet half-half mengen (geschulpte rand en facetten geven bulten)
   if(pool.length<2) return null;
   const fam=k=>{ const c=srcCat('ref-'+k); return c==='nat'||c==='arch'?'org':c; };
   for(let i=0;i<14;i++){ const k0=pick(pool), sub=sameCut(pool,k0).filter(k=>fam(k)===fam(k0)), use=sub.length>=2?sub:sameCut(pool,k0).length>=2?sameCut(pool,k0):pool; const pT=pickHalf(V,use,'t',Math.random), pB=Math.random()<(amp>1.2?0.5:0.7)?pT.map(x=>[...x]):pickHalf(V,use,'b',Math.random);
     const g=blendBody(V,use,Math.random,{amt:Math.min(2.6,0.3+amp*1.0),pT,pB}); let poly=g.poly, org=org0&&Math.random()<0.2+0.25*amp; if(org) poly=organicFlow(poly,Math.min(2.2,0.5+amp*0.7),Math.random);
     const PK=[...new Set(g.parents.t.concat(g.parents.b))], ok=finishBody(poly,Math.max(...PK.map(refLobes))+(amp>1.5?1:0)); if(!ok||!calmAs(ok,PK,amp>1.5)||!hornsOK(ok,PK)) continue;
+    if(shapeDents(ok)>Math.min(...PK.map(refDents))) continue;   // 22/11 (Tom: mengsel 'te lumpy, rare hoorn'): een mengsel is nooit bobbeliger dan zijn rustigste bron
     const main=lib.designs.find(d=>d.id==='ref-'+g.parents.t[0])||defaultBody(), nm=[...new Set(g.parents.t.concat(g.parents.b))].slice(0,3).map(refName).join(' × ');
-    { const r=bodyFromPoly(ok,main.set,nm+(org?', organisch':'')); if(okInst(r)) return r; } }
+    { const r=bodyFromPoly(ok,main.set,nm+(org?', organisch':'')); r._dl=Math.min(...PK.map(refDents)); if(okInst(r)) return r; } }
   return null; }
 // acht voorstellen binnen de band van de gekozen wildheid; binnen de band wint de rustigste lijn. Liever minder dan buiten de band.
 // 14/11 (Tom: "niets technisch fout voorstellen"): elk voorstel van de Inspirator moet de volledige keuring halen, anders wordt het niet getoond
@@ -3581,7 +3583,7 @@ const DENT_MAX=3;
 // 21/11: met kamers één klein klankgat; diskant tenzij daar pickguard of knoppen in de weg zitten, dan de baskant
 function chamberHole(d){ const sh=d.set.sh; if(!sh||!sh.type||sh.type==='none') return; sh.size=Math.round(SH_TYPES[sh.type].L*0.6); const hit=()=>bodyChecks(d).some(t=>/klankgat|gat \(|f-gat|s-gat|kamer/i.test(t));
   for(const side of ['treble','bass']){ sh.side=side; refreshAuto(d); if(!hit()) return; } sh.side='treble'; refreshAuto(d); }
-function smoothProposal(p,src){ if(!p||p.type!=='body') return p; const lim=Math.max(DENT_MAX,src&&insp.mode==='vary'?shapeDents(geom(src).poly):0);
+function smoothProposal(p,src){ if(p&&p._dl!=null){ var dl=p._dl+1; delete p._dl; } if(!p||p.type!=='body') return p; const lim=Math.min(dl||99,Math.max(DENT_MAX,src&&insp.mode==='vary'?shapeDents(geom(src).poly):0));   /* 22/11: _dl = deukjes van de (rustigste) bron: het voorstel wordt nooit bobbeliger dan zijn bron */
   if(shapeDents(geom(p).poly)<lim) return p; try{ fairObj(p,1,false); refreshAuto(p); }catch(e){ return null; } return shapeDents(geom(p).poly)<lim&&proposalOK(p)?p:null; }
 function fillWild(make,n,lv,opt){ opt=opt||{}; const t0=Date.now(), got=[], near=[], stale=[], nov=opt.nov||novelty, sc=opt.scale||1, lo=lv.lo*sc, hi=lv.hi>=1?1:lv.hi*sc;
   for(let i=0;i<140&&Date.now()-t0<(opt.ms||2800)&&got.length<n*2;i++){ const amp=lv.amp*(0.75+Math.random()*0.5); let d=null; try{ d=make(amp); }catch(e){} if(!d||!proposalOK(d)) continue; delete d.sig;
