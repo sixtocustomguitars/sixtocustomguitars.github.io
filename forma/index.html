@@ -1487,12 +1487,30 @@ function knobNovel(d,ctx,idea,vr,test){ if(!vr||vr.x==null) return null; const c
   else if(idea==='clover'){ const r=st/(2*Math.sin(Math.PI/n)); for(let j=0;j<n;j++){ const t=a+j*2*Math.PI/n; P(vr.x+r*Math.cos(t), vr.y+r*Math.sin(t)); } }
   else if(idea==='arrow'){ P(vr.x,vr.y); for(let j=1;j<n;j++){ const arm=j%2?1:-1, m=Math.ceil(j/2), t=a+arm*0.62; P(vr.x+Math.cos(t)*st*m, vr.y+Math.sin(t)*st*m); } }
   else return null;
-  return test(ks); }
+  const r=test(ks); return r&&knobBuildOK(d,ctx,r)?r:null; }
+// 22/11 (Tom: 'niet bouwbaar'): eigen knopopstellingen moeten ook als elektronica kunnen.
+// - niets in de snarenbaan en het middenblok: elke knop aan de diskantkant, buiten de snaren (zoals alle gemeten gitaren)
+// - niets tussen brug en tailpiece: de hele zone van de brugonderdelen (+ 8 mm) blijft vrij
+// - één elektronicaholte: rond elke potmeter (straal 14 mm: potmeter 24 mm + speling) en kanaaltjes ertussen; binnen de body met min. 6 mm hout,
+//   min. 3 mm hout naar elke pickupfrezing en naar de brugzone, niet in de halsvoet. Geijkt: LP, SG, ES, Strat, Tele, PRS, Explorer, Offset slagen.
+function knobBuildOK(d,ctx,ks){ const s=d.set, xb=s.spBridge/2, R=14, poly=ctx.g.poly;   // holte rond een potmeter: 24 mm + speling
+  if(ks.some(k=>k.x<xb+30)) return false;
+  { const b=ctx.pus.find(u=>u.k==='pu1')||ctx.pus[0]; if(b&&ks.some(k=>k.y>b.cover.cy+15)) return false; }   // niet hoger dan de brugpickup: daar zit de aanslaghand (zoals alle gemeten gitaren)
+  const br=ctx.br.map(q=>q.r!=null?{x0:q.x-q.r,x1:q.x+q.r,y0:q.y-q.r,y1:q.y+q.r}:(()=>{ const C=rectCorners(q); return {x0:Math.min(...C.map(c=>c.x)),x1:Math.max(...C.map(c=>c.x)),y0:Math.min(...C.map(c=>c.y)),y1:Math.max(...C.map(c=>c.y))}; })());
+  const BZ=br.length?{x0:Math.min(...br.map(b=>b.x0))-3,x1:Math.max(...br.map(b=>b.x1))+3,y0:Math.min(...br.map(b=>b.y0))-3,y1:Math.max(...br.map(b=>b.y1))+3}:null;
+  // kanaaltjes: kortste boom tussen de knoppen; elke verbinding max. 65 mm (anders twee holtes)
+  const n=ks.length, inT=[0], E=[]; while(inT.length<n){ let best=null; for(const i of inT) for(let j=0;j<n;j++){ if(inT.includes(j)) continue; const l=Math.hypot(ks[i].x-ks[j].x,ks[i].y-ks[j].y); if(!best||l<best.l) best={i,j,l}; } if(best.l>65) return false; E.push(best); inT.push(best.j); }
+  const S=[...ks]; E.forEach(({i,j,l})=>{ for(let t=6;t<l;t+=6){ const f=t/l; S.push({x:ks[i].x+(ks[j].x-ks[i].x)*f,y:ks[i].y+(ks[j].y-ks[i].y)*f}); } });
+  for(const p of S){ if(!inside(poly,p)||distToPoly(poly,p)<R+6) return false;
+    if(ctx.pus.some(u=>rectDist(p,u.route)<R+3)) return false;
+    if(BZ&&Math.hypot(Math.max(BZ.x0-p.x,0,p.x-BZ.x1),Math.max(BZ.y0-p.y,0,p.y-BZ.y1))<R) return false;
+    if(p.y>ctx.pocketEnd-R-5&&Math.abs(p.x)<s.heelW/2+R+5) return false; }
+  return true; }
 const knobDist=(A,B)=>{ if(!A||!B||A.length!==B.length) return 1e9; const f=(P,Q)=>P.reduce((s,p)=>s+Math.min(...Q.map(q=>Math.hypot(p.x-q.x,p.y-q.y))),0)/P.length; return Math.max(f(A,B),f(B,A)); };
 function knobSomethingNew(d,ctx){ const c=d.set.ctrl, n=c.n, xb=d.set.spBridge/2, ids=Object.keys(KNOB_NEW).filter(k=>n>=KNOB_NEW[k].min), R=(a,b)=>a+Math.random()*(b-a);
   const known=Object.keys(KNOB_IDEAS).filter(k=>n>=KNOB_IDEAS[k].min).map(k=>knobLayout(d,ctx,k,null)).filter(Boolean); const cur=(c.items||[]).filter(t=>t.t==='knob'); if(cur.length) known.push(cur);
   const poly=ctx.g.poly, got=[]; const t0=Date.now();
-  for(let i=0;i<900&&got.length<10&&Date.now()-t0<1500;i++){ const id=ids[Math.floor(Math.random()*ids.length)]; if(id===c.layout&&Math.random()<0.7) continue; const vr={x:R(xb+22,xb+150),y:R(-160,55),a:R(0,2*Math.PI),r:R(75,150),sg:Math.random()<0.5?1:-1,k:R(1,1.12)};
+  for(let i=0;i<2500&&got.length<10&&Date.now()-t0<2000;i++){ const id=ids[Math.floor(Math.random()*ids.length)]; if(id===c.layout&&Math.random()<0.7) continue; const vr={x:R(xb+30,xb+150),y:R(-170,55),a:R(0,2*Math.PI),r:R(75,150),sg:Math.random()<0.5?1:-1,k:R(1,1.35)};   // afstand tussen knoppen: 37 tot ± 50 mm
     const ks=knobLayout(d,ctx,id,vr); if(!ks) continue; if(known.some(K=>knobDist(ks,K)<18)) continue;
     const wood=Math.min(...ks.map(k=>distToPoly(poly,k))); got.push({id,vr,ks,sc:Math.min(wood,40)+Math.random()*12}); }
   if(!got.length) return null; got.sort((a,b)=>b.sc-a.sc); return got[0]; }
