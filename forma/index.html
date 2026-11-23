@@ -1793,6 +1793,7 @@ function autoPG0(d,ctx){
     if(!pusF.length){ pg.pts=null; return; }
     const lo=Math.min(...pusF.map(p=>p.cover.cy-p.cover.h/2)), xi=Math.max(hw+2,pw+4); let hi=Math.max(...pusF.map(p=>p.cover.cy+p.cover.h/2))+25; while(hi>lo+40&&(!X(hi)||X(hi)[2]>2||!X(hi+12)||X(hi+12)[2]>2)) hi-=2;   // niet de hoorn in
     const xo=y=>{ const r=X(y); return r?r[1]-8-inset:xi; }; if(hi-lo<40||xo((lo+hi)/2)-xi<22){ pg.pts=null; return; }
+    { const nY=pgNeckY(d,ctx); while(hi>lo+40&&hi>nY-6&&Math.min(xi,xi+(xo(hi)-xi)*0.55)<neckHW(s,hi)+4) hi-=2; }   /* 23/11 (Tom): ook het losse blad blijft van de toets weg (de punt onderaan mag niet onder de toets) */
     add(xi,hi-8,1); add(xi+(xo(hi)-xi)*0.55,hi); ysDown(hi-18,lo+35,4).forEach(y=>add(xo(y),y)); add(xi+(xo(lo+20)-xi)*0.3,lo); add(xi,lo+28,1); pg.pts=P; return; }
   if (yHi-yLow<20){ pg.pts=null; return; }
   if (pg.style==='bass'){
