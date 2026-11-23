@@ -1769,7 +1769,8 @@ function pgContain(d,ctx){ const pg=d.set.pg, g=ctx.g, m=Math.max(1,(pg.margin||
     let bad=0; const Q=poly.map(p=>{ if(inside(allow,p)) return {x:p.x,y:p.y}; bad++; const q=nearestOnPoly(allow,p); return {x:q.x,y:q.y}; });
     if(!bad) return; pg.pts=fitAnchors(Q,{tol:0.5}).map(p=>({x:Math.round(p.x*2)/2,y:Math.round(p.y*2)/2,c:!!p.c})); } }
 // 15/11 (Tom): bij een gelijmde hals kan de pickguard de zone tussen de toets en de halspickup bedekken (het stukje bij een SG); bij een geschroefde hals ligt daar de halsvoet
-function pgNeckY(d,ctx){ return ctx.fbEnd-2; }   // 23/11 (Tom): de pickguard loopt over de halsvoet tot 2 mm voor de toets (speling, de afronding schiet niet onder de toets), ook bij een geschroefde hals (zoals een Strat); schroeven blijven uit de halsvoet (pgScrews)
+const PG_NECK_GAP=3;   // 23/11 (Tom): echte ruimte tussen pickguard en toets (zijkanten en einde), zichtbaar op een gsm; was 1 mm opzij en 2 mm aan het einde
+function pgNeckY(d,ctx){ return ctx.fbEnd-PG_NECK_GAP; }   // 23/11 (Tom): de pickguard loopt over de halsvoet tot 2 mm voor de toets (speling, de afronding schiet niet onder de toets), ook bij een geschroefde hals (zoals een Strat); schroeven blijven uit de halsvoet (pgScrews)
 function autoPG0(d,ctx){
   const pg=d.set.pg, s=d.set; if (pg.style==='none'){ return; }
   const g=ctx.g, hw=s.heelW/2, off=offsetPoly(g.poly,pg.margin);
@@ -1810,13 +1811,13 @@ function autoPG0(d,ctx){
     pg.pts=P; return;
   }
   const nE=PO.hi!=null?-1e9:pgNeckY(d,ctx), notch=nE>-1e8&&nE<yHi, nw=y=>Math.max(hw,neckHW(s,y));
-  if (notch){ add(-nw(nE)-1,nE,1); add(nw(nE)+1,nE,1); add(nw(yHi)+1,yHi,1); }
+  if (notch){ add(-nw(nE)-PG_NECK_GAP,nE,1); add(nw(nE)+PG_NECK_GAP,nE,1); add(nw(yHi)+PG_NECK_GAP,yHi,1); }
   // 22/11 (Tom: 'Body begint bij' verschuiven gaf rare vormen): stopt de pickguard onder de hals, dan loopt hij zoals bij een echte gitaar
   // tussen de hoorns door (langs de binnenkant van de cutaways) tot tegen de hals; is de cutaway te krap, dan een tong onder de hals.
   const XI=y=>{ const xs=hits(off,y); return xs.length>=4?[xs[1],xs[xs.length-2]]:xs.length===2?[xs[0],xs[1]]:null; };
   let yE=yHi; if(!notch&&nE>yHi+3){ while(yE+2<=nE){ const r=XI(yE+2); if(!r||r[0]>-nw(yE+2)-3||r[1]<nw(yE+2)+3) break; yE+=2; } }
   const tongue=!notch&&nE>yE+3, up=yE>yHi+3, nU=Math.max(2,Math.round((yE-yHi)/12));
-  const tw=y=>{ const r=XI(y), w=Math.max(nw(y)+1,pw+6+inset); return r?Math.max(nw(y)+1,Math.min(w,-r[0]-1,r[1]-1)):nw(y)+1; };   // tong: breed genoeg voor de pickups, binnen de cutaways
+  const tw=y=>{ const r=XI(y), w=Math.max(nw(y)+PG_NECK_GAP,pw+6+inset); return r?Math.max(nw(y)+PG_NECK_GAP,Math.min(w,-r[0]-1,r[1]-1)):nw(y)+PG_NECK_GAP; };   // tong: breed genoeg voor de pickups, binnen de cutaways
   if (tongue){ add(-tw(nE),nE,1); add(tw(nE),nE,1); add(tw(yE),yE,1); }
   if (up) ysDown(yE,yHi+2,nU).forEach((y,i)=>add(XI(y)[1],y,i===0));
   const kn=(s.ctrl.items||[]).filter(t=>(t.t==='knob'||t.t==='sw'||(t.t==='jack'&&s.ctrl.jack==='top')) && t.y-itemR(t,s.ctrl)<yLow);
@@ -1830,7 +1831,7 @@ function autoPG0(d,ctx){
   ysDown(yHi,yB,N).reverse().forEach((y,i)=>add(X(y)[0],y,i===0||i===N));
   if (up) ysDown(yE,yHi+2,nU).reverse().forEach((y,i)=>add(XI(y)[0],y,i===nU));
   if (tongue) add(-tw(yE),yE,1);
-  if (notch) add(-nw(yHi)-1,yHi,1);
+  if (notch) add(-nw(yHi)-PG_NECK_GAP,yHi,1);
   pg.pts=P;
 }
 // halsdiepte: volgt altijd de laatste versie. Wat het hout (body en hals) en de halsbreedte vragen, wordt toegepast,
@@ -4122,8 +4123,9 @@ function guitarSVG(b,h,o){ o=o||rndOpt(); const LFT=isLeft(b); const s=b.set, g=
         +`<path d="${pth(pgg.segs)}" fill="none" stroke="#f1ece2" stroke-width="2.8"/><path d="${pth(pgg.segs)}" fill="none" stroke="#1b1512" stroke-width="1.1"/>`; }
     pgScrews(b,pgg).forEach(q=>d+=`<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="1.8" fill="url(#met)"/>`); }
   // hals en toets
-  const yN=sc, neckPts=[{x:-nhw(yN),y:yN},{x:nhw(yN),y:yN},{x:nhw(heelY),y:heelY},{x:-nhw(heelY),y:heelY}];
-  d+=`<polygon points="${poly(neckPts)}" fill="${neckC}"/>`; if(lam){ const nw=nhw(heelY)*2/lam.length; d+=`<clipPath id="cn"><polygon points="${poly(neckPts)}"/></clipPath><g clip-path="url(#cn)">${lam.map((c,i)=>`<rect x="${X(-nhw(heelY)+i*nw)}" y="${Y(yN)}" width="${nw.toFixed(1)}" height="${(yN-heelY).toFixed(1)}" fill="${c}"/>`).join('')}</g>`; }
+  const heelF=Math.max(heelY,fbEnd);   // 23/11 (Tom): wat voorbij het einde van de toets in de body loopt (tenon, halsvoet) ligt onder de top of de pickguard en wordt niet getekend
+  const yN=sc, neckPts=[{x:-nhw(yN),y:yN},{x:nhw(yN),y:yN},{x:nhw(heelF),y:heelF},{x:-nhw(heelF),y:heelF}];
+  d+=`<polygon points="${poly(neckPts)}" fill="${neckC}"/>`; if(lam){ const nw=nhw(heelF)*2/lam.length; d+=`<clipPath id="cn"><polygon points="${poly(neckPts)}"/></clipPath><g clip-path="url(#cn)">${lam.map((c,i)=>`<rect x="${X(-nhw(heelF)+i*nw)}" y="${Y(yN)}" width="${nw.toFixed(1)}" height="${(yN-heelF).toFixed(1)}" fill="${c}"/>`).join('')}</g>`; }
   const fb=[{x:-nhw(yN),y:yN},{x:nhw(yN),y:yN},{x:nhw(fbEnd),y:fbEnd},{x:-nhw(fbEnd),y:fbEnd}];
   d+=`<polygon points="${poly(fb)}" fill="${boardC}"/>`;
   for(let n=1;n<=Math.min(s.frets,fbFret(s));n++){ const y=fretY(s,n), w=nhw(y); d+=`<line x1="${X(-w)}" y1="${Y(y)}" x2="${X(w)}" y2="${Y(y)}" stroke="${M[1]}" stroke-width="1.8"/><line x1="${X(-w)}" y1="${(+Y(y)-0.5).toFixed(2)}" x2="${X(w)}" y2="${(+Y(y)-0.5).toFixed(2)}" stroke="${M[0]}" stroke-width=".6"/>`; }
