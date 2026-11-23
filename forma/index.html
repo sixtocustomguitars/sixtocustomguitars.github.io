@@ -1769,7 +1769,7 @@ function pgContain(d,ctx){ const pg=d.set.pg, g=ctx.g, m=Math.max(1,(pg.margin||
     let bad=0; const Q=poly.map(p=>{ if(inside(allow,p)) return {x:p.x,y:p.y}; bad++; const q=nearestOnPoly(allow,p); return {x:q.x,y:q.y}; });
     if(!bad) return; pg.pts=fitAnchors(Q,{tol:0.5}).map(p=>({x:Math.round(p.x*2)/2,y:Math.round(p.y*2)/2,c:!!p.c})); } }
 // 15/11 (Tom): bij een gelijmde hals kan de pickguard de zone tussen de toets en de halspickup bedekken (het stukje bij een SG); bij een geschroefde hals ligt daar de halsvoet
-const PG_NECK_GAP=3;   // 23/11 (Tom): echte ruimte tussen pickguard en toets (zijkanten en einde), zichtbaar op een gsm; was 1 mm opzij en 2 mm aan het einde
+const PG_NECK_GAP=4;   // 23/11 (Tom): echte ruimte tussen pickguard en toets (zijkanten en einde), zichtbaar op een gsm; was 1 mm opzij en 2 mm aan het einde. 3 mm bleek te weinig bij een schildpad-pickguard: de rand van 2,8 mm neemt 1,4 mm van de ruimte
 function pgNeckY(d,ctx){ return ctx.fbEnd-PG_NECK_GAP; }   // 23/11 (Tom): de pickguard loopt over de halsvoet tot 2 mm voor de toets (speling, de afronding schiet niet onder de toets), ook bij een geschroefde hals (zoals een Strat); schroeven blijven uit de halsvoet (pgScrews)
 function autoPG0(d,ctx){
   const pg=d.set.pg, s=d.set; if (pg.style==='none'){ return; }
