@@ -644,6 +644,7 @@ Object.assign(T_EN,{'Beuk (beech)':'Beech','Mix (stukken die samenwerken)':'Mix 
 Object.assign(T_NL,{'Met kamers (chambered)':'Met kamers (chambered)'});
 Object.assign(T_EN,{'Halfhol: alle klankgaten. Met kamers: één klein klankgat. Massief: geen.':'Semi-hollow: all sound holes. Chambered: one small sound hole. Solid: none.'});
 Object.assign(T_EN,{'Met kamers: één klein klankgat, de top blijft verder dicht.':'Chambered: one small sound hole, the rest of the top stays closed.','Klankgaten vragen een halfholle body: kies die bij Vorm.':'Sound holes need a semi-hollow body: choose it under Shape.'});
+Object.assign(T_EN,{'Met kamers':'Chambered','Verborgen kamers onder een dichte top: rand 30 mm, middenblok 110 mm':'Hidden chambers under a closed top: 30 mm rim, 110 mm centre block','Kamers (body-omtrek met de kamers)':'Chambers (body outline with the chambers)'});
 Object.assign(T_EN,{'Verborgen kamers onder een dichte top: lichter':'Hidden chambers under a closed top: lighter','🔒 Bewerk een kopie':'🔒 Edit a copy','Met kamers (chambered)':'Chambered','lichter, de top blijft dicht':'lighter, the top stays closed','Met kamers: de top blijft dicht, de klankgaten zijn weg.':'Chambered: the top stays closed, the sound holes are gone.','Klankgaten vragen een deels holle body: kies die bij Vorm.':'Sound holes need a semi-hollow body: choose it under Shape.'});
 Object.assign(T_NL,{'Klankgaten vragen een deels holle body: kies die bij Vorm.':'Klankgaten vragen een halfholle body: kies die bij Vorm.'});
 function tr(s){ if(!LIGHT||s==null) return s; const k=String(s).trim(); if(!k) return s; const D=EN?T_EN:T_NL; let v=D[k];
@@ -721,7 +722,7 @@ async function shareDesign(){ const L=await designLink(); if(!L) return; const t
 const headLabel=h=>h?(/^Nieuwe kop/.test(h.name)?'Standaardkop':h.name):'geen';
 function designSummary(b){ const o=rndOpt(), s=b.set, h=partnerHead(b), sh=s.sh&&s.sh.type!=='none'&&SH_TYPES[s.sh.type]?SH_TYPES[s.sh.type].n+(s.sh.type==='morse'?' ('+(s.sh.text||'')+')':s.sh.type==='grill'?' ('+(GRILL_SHAPES[s.sh.gs]||'')+')':''):null;
   const pu=['pu3','pu2','pu1'].map(k=>s[k]&&PUS[s[k].t]&&PUS[s[k].t][1]?PUS[s[k].t][0]:null).filter(Boolean);
-  const L=[['Vorm',b.name],['Hand',isLeft(b)?'Linkshandig':'Rechtshandig'],['Afwerking',(FINISH[o.fin]||FINISH.hout)[0]],['Hout',(WOODS[s.wood]||['?'])[0]],['Body',s.inside==='semi'?'Chambered (semi-hollow)':'Solid body'],['Klankgaten',sh||'geen'],['Pickups',pu.length?pu.join(' + '):'geen'],...(s.pg&&s.pg.style!=='none'&&s.pg.pts?[['Pickguard',[tr((PG_STYLES[s.pg.style]||PG_STYLES.full)[0])+(s.pg.gen&&s.pg.genOk&&PG_GEN[s.pg.gen.ch]?' ('+tr('vorm')+' '+tr(PG_GEN[s.pg.gen.ch].n)+')':''),tr((PG_COL[s.pg.color]||PG_COL.wit)[0]),...((s.pg.puOut||[]).length?[tr('in de body')+': '+s.pg.puOut.map(k=>tr(PUNAME[k][0].toUpperCase()+PUNAME[k].slice(1))).join(', ')]:[]),...(s.pg.knobsOut?[tr('knoppen in de body')]:[])].join(', ')]]:[]),['Toets',(BOARD[o.board]||BOARD.pal)[0]],['Hals vast',(JOIN[o.join]||JOIN.lijm)[0]],['Hardware',(METAL[o.metal]||METAL.chroom)[0]],['Knoppen',(KNOBC[o.knob]||KNOBC.hw)[0]],...(s.ctrl&&s.ctrl.sw&&s.ctrl.sw!=='none'?[['Schakelaarknopje',(SWTIP[o.swtip]||SWTIP.creme)[0]]]:[]),['Kop',headLabel(h)],['Voorkant kop',(HEADC[o.headc]||HEADC.hout)[0]]]; if(o.arm==='ja'&&!HOLLOW(b)&&armGeo(geom(b))) L.push(['Armafschuining','Ja']); if(o.belly==='ja'&&!HOLLOW(b)&&bellyGeo(geom(b))) L.push(['Buikcontour (achter)','Ja']);
+  const L=[['Vorm',b.name],['Hand',isLeft(b)?'Linkshandig':'Rechtshandig'],['Afwerking',(FINISH[o.fin]||FINISH.hout)[0]],['Hout',(WOODS[s.wood]||['?'])[0]],['Body',s.inside==='semi'?'Chambered (semi-hollow)':s.inside==='light'?'Met kamers (chambered)':'Solid body'],['Klankgaten',sh||'geen'],['Pickups',pu.length?pu.join(' + '):'geen'],...(s.pg&&s.pg.style!=='none'&&s.pg.pts?[['Pickguard',[tr((PG_STYLES[s.pg.style]||PG_STYLES.full)[0])+(s.pg.gen&&s.pg.genOk&&PG_GEN[s.pg.gen.ch]?' ('+tr('vorm')+' '+tr(PG_GEN[s.pg.gen.ch].n)+')':''),tr((PG_COL[s.pg.color]||PG_COL.wit)[0]),...((s.pg.puOut||[]).length?[tr('in de body')+': '+s.pg.puOut.map(k=>tr(PUNAME[k][0].toUpperCase()+PUNAME[k].slice(1))).join(', ')]:[]),...(s.pg.knobsOut?[tr('knoppen in de body')]:[])].join(', ')]]:[]),['Toets',(BOARD[o.board]||BOARD.pal)[0]],['Hals vast',(JOIN[o.join]||JOIN.lijm)[0]],['Hardware',(METAL[o.metal]||METAL.chroom)[0]],['Knoppen',(KNOBC[o.knob]||KNOBC.hw)[0]],...(s.ctrl&&s.ctrl.sw&&s.ctrl.sw!=='none'?[['Schakelaarknopje',(SWTIP[o.swtip]||SWTIP.creme)[0]]]:[]),['Kop',headLabel(h)],['Voorkant kop',(HEADC[o.headc]||HEADC.hout)[0]]]; if(o.arm==='ja'&&!HOLLOW(b)&&armGeo(geom(b))) L.push(['Armafschuining','Ja']); if(o.belly==='ja'&&!HOLLOW(b)&&bellyGeo(geom(b))) L.push(['Buikcontour (achter)','Ja']);
   return L.map(([k,v])=>tr(k)+': '+tr(v)).join('\n'); }
 async function sendToSixto(){ const L=await designLink(); if(!L) return; const sum=designSummary(L.b);
   const subj=EN?`My guitar design: ${tr(L.b.name)}`:`Mijn gitaarontwerp: ${L.b.name}`;
@@ -1069,7 +1070,7 @@ mkHeadR('rick4003','4003-type baskop (Rickenbacker, 2+2)','bass',{strings:4}),
 
 // ================= opslag =================
 function migrate(d){
-  if (d.type==='body'){ const b=defaultBody().set; for (const k in b) if (d.set[k]===undefined) d.set[k]=clone(b[k]); ['pu1','pu2','pu3'].forEach(k=>{ if(d.set[k].a==null) d.set[k].a=0; }); if(d.set.inside==='light') d.set.inside='semi'; if(d.set.ctrl&&!d.set.ctrl.swPos) d.set.ctrl.swPos='auto'; }   // lichtkamers bestaan niet meer (Tom 14/11: solid of semi-hollow)
+  if (d.type==='body'){ const b=defaultBody().set; for (const k in b) if (d.set[k]===undefined) d.set[k]=clone(b[k]); ['pu1','pu2','pu3'].forEach(k=>{ if(d.set[k].a==null) d.set[k].a=0; }); if(d.set.ctrl&&!d.set.ctrl.swPos) d.set.ctrl.swPos='auto'; }   // 'light' = met kamers (chambered), terug sinds Decision 050 (21/11)
   else { const h=defaultHead().set; for (const k in h) if (d.set[k]===undefined) d.set[k]=h[k]; }
   return d;
 }
@@ -2340,10 +2341,14 @@ function grillRings(L,o){ o=o||{}; const wf=Math.max(0.5,Math.min(1.8,o.wf||1)),
   return out; }
 // o.md = grootte van de punten, o.mw = breedte van de strepen, o.mg = tussenruimte (telkens een factor rond 1)
 function morseRings(L,txt,o){ o=o||{}; const md=o.md||1, mw=o.mw||1, mg=o.mg||1; const code=String(txt||'SCG').toUpperCase().split('').filter(c=>MORSE[c]).map(c=>MORSE[c]); if(!code.length) return [];
-  let u=0; code.forEach((c,i)=>{ c.split('').forEach((s,j)=>{ u+=(s==='.'?1:3)+(j<c.length-1?mg:0); }); if(i<code.length-1) u+=2.5*mg; }); // eenheid nooit kleiner dan wat te frezen is: punten en strepen min. 6 mm, min. 5,5 mm hout ertussen (dan wordt de reeks langer)
-  const k=Math.max(L/u,6.6,5.5/mg), w=Math.max(6,Math.min(k*0.9,14)*mw), dotD=Math.max(6,Math.min(Math.min(k*0.9,14)*md,k*(1+mg)-5.5)), out=[]; let y=(u*k)/2;
-  code.forEach((c,i)=>{ c.split('').forEach((s,j)=>{ const len=(s==='.'?1:3)*k, cy=y-len/2; out.push(s==='.'?circRing(0,cy,dotD/2,28):slotRing(0,cy,w,Math.max(len,w))); y-=len+(j<c.length-1?k*mg:0); }); y-=2.5*k*mg; });
+  // 24/11 (Tom: morse ging niet kleiner): maten in echte mm, met de freesgrenzen als ondergrens: punt en streep min. 6 mm breed, min. 5,5 mm hout ertussen, tussen letters min. 9 mm.
+  // Een kleinere tussenruimte maakt de reeks korter (vroeger juist langer). Korter dan wat zo te frezen is, kan niet: dan blijft de reeks op haar kleinste lengte.
+  let u=0; code.forEach((c,i)=>{ c.split('').forEach((s,j)=>{ u+=(s==='.'?1:3)+(j<c.length-1?mg:0); }); if(i<code.length-1) u+=2.5*mg; });
+  const k=L/u, D=Math.max(6,Math.min(k*0.9,14)*md), w=Math.max(6,Math.min(k*0.9,14)*mw), dash=Math.max(3*k,2.2*w), gIn=Math.max(5.5,k*mg+(k-D)*0.5), gL=Math.max(9,2.5*k*mg), out=[], el=[];
+  let y=0; code.forEach((c,i)=>{ c.split('').forEach((s,j)=>{ const len=s==='.'?D:dash; el.push({s,cy:y+len/2,len}); y+=len+(j<c.length-1?gIn:0); }); if(i<code.length-1) y+=gL; });
+  const T=y; el.forEach(e=>{ const cy=T/2-e.cy; out.push(e.s==='.'?circRing(0,cy,D/2,28):slotRing(0,cy,w,e.len)); });
   return out; }
+function morseLen(txt,o){ const R=morseRings(1,txt,o); if(!R.length) return 0; const ys=[].concat(...R).map(p=>p.y); return Math.max(...ys)-Math.min(...ys); }
 function slotRing(cx,cy,w,len){ const r=w/2, h=Math.max(0,len/2-r), o=[]; for(let i=0;i<=14;i++){ const a=Math.PI*i/14; o.push({x:cx+r*Math.cos(a),y:cy+h+r*Math.sin(a)}); } for(let i=0;i<=14;i++){ const a=Math.PI+Math.PI*i/14; o.push({x:cx+r*Math.cos(a),y:cy-h+r*Math.sin(a)}); } return o; }
 function roundRing(P,r){ const out=[], n=P.length; P.forEach((p,i)=>{ const a=P[(i-1+n)%n], b=P[(i+1)%n], da=Math.hypot(a.x-p.x,a.y-p.y), db=Math.hypot(b.x-p.x,b.y-p.y), k=Math.min(r,da/3,db/3), A={x:p.x+(a.x-p.x)*k/da,y:p.y+(a.y-p.y)*k/da}, B={x:p.x+(b.x-p.x)*k/db,y:p.y+(b.y-p.y)*k/db}; for(let s=0;s<=6;s++){ const t=s/6; out.push({x:(1-t)*(1-t)*A.x+2*(1-t)*t*p.x+t*t*B.x,y:(1-t)*(1-t)*A.y+2*(1-t)*t*p.y+t*t*B.y}); } }); return out; }
 function eye(t,t0,r){ const d=Math.abs(t-t0); return d<r?Math.sqrt(r*r-d*d):0; }
@@ -2381,7 +2386,7 @@ function shConflicts(d,ctx,pg,rs){ const s=d.set, pts=[].concat(...rs); let n=0;
   if(ctx.br.some(b=>pts.some(q=>b.r!=null?Math.hypot(q.x-b.x,q.y-b.y)<b.r+5:rectDist(q,b)<5))) n++;
   if(pg&&pts.some(q=>inside(pg,q))) n++; return n; }
 function holePolys(d){ const s=d.set, h=s.sh; if(!h||h.type==='none'||!SH_TYPES[h.type]) return [];
-  const key=JSON.stringify([d.pts,d.sym,d.tension,h,s.inside,s.pu1,s.pu2,s.pu3,s.bridge,s.pg.pts,s.pg.style,s.heelW]); if(SH_CACHE.k===key) return SH_CACHE.v; if(typeof drag!=='undefined'&&drag&&SH_CACHE.v&&SH_CACHE.id===d.id) return SH_CACHE.v;   // tijdens slepen niet zoeken: na het loslaten wel
+  const key=JSON.stringify([d.pts,d.sym,d.tension,h,s.inside,s.pu1,s.pu2,s.pu3,s.bridge,s.pg.pts,s.pg.style,s.heelW]); if(SH_CACHE.k===key) return SH_CACHE.v; if(typeof drag!=='undefined'&&drag&&drag.kind!=='sh'&&SH_CACHE.v&&SH_CACHE.id===d.id) return SH_CACHE.v;   // tijdens slepen niet zoeken: na het loslaten wel
   const g=geom(d), real=s.inside&&s.inside!=='solid', ch=real?chamberPolys(d):chamberPolys({...d,set:{...s,inside:'semi'}}), L0=h.size||SH_TYPES[h.type].L, out=[], ctx=bodyCtx(d), pg=s.pg.style!=='none'&&s.pg.pts?geom(pgObj(d)).poly:null;
   const yPU=ctx.pus.length?ctx.pus.reduce((a,p)=>a+p.route.cy,0)/ctx.pus.length:60, pos=h.pos||'auto';
   // symmetrie eerst: één plek die gespiegeld aan beide kanten past, zelfde hoogte en grootte. Lukt dat niet zonder botsing, dan één klankgat aan de vrije kant.
@@ -2446,10 +2451,11 @@ function holesHTML(){ return `<section><h2>Klankgaten</h2><div class="ideas bouw
   <div id="shOpts" style="margin-top:8px"><div class="btns" style="margin-bottom:6px"><button data-act="shPlay" title="Een andere maat, breedte en kanteling, altijd binnen wat goed te bouwen is">🎲 Speel ermee</button></div>${num('set.sh.size','Lengte','mm',1)}${num('set.sh.wf','Breedte','×',0.05)}<div id="shGrill">${sel_('set.sh.gs','Vorm van het rooster',GRILL_SHAPES)}</div><div id="shMorse"><div id="shMd">${num('set.sh.md','Grootte van de punten','×',0.05)}</div>${num('set.sh.mw','Breedte van de strepen','×',0.05)}${num('set.sh.mg','Ruimte ertussen','×',0.05)}</div><div class="row" id="shTxtRow"><label>Tekst in morse</label><input type="text" data-bind="set.sh.text" maxlength="12" style="width:110px;text-transform:uppercase"></div>${sel_('set.sh.flow','Meegolven met de rand',SH_FLOW)}${num('set.sh.ang','Kanteling','°',1)}${sel_('set.sh.side','Welke kant',{both:'Beide',bass:'Bas',treble:'Diskant'})}${sel_('set.sh.pos','Plaats',SH_POS)}<div id="shNudge">${num('set.sh.dx','Naar buiten (+) of binnen','mm',1)}${num('set.sh.dy','Omhoog (+) of omlaag','mm',1)}</div><div id="shFree">${num('set.sh.fx','Afstand tot de middellijn','mm',1)}${num('set.sh.fy','Hoogte boven het zadel','mm',1)}</div><p class="hint" id="shState"></p></div></section>`; }
 function shState(d){ const H=holePolys(d); if(!H.length) return ''; const s=d.set, k=Math.min(...H.map(h=>h.k)), out=[];
   if(s.sh.pos==='free'){ const mv=Math.max(...H.map(h=>h.moved||0)); out.push(mv?`Je plek viel buiten de holte: Forma schoof de klankgaten ${mv} mm op tot ze erin passen.`:'Op de plek die je zelf koos: Forma houdt ze in de holte en waarschuwt als iets botst.'); }
-  else { if(H.some(h=>h.single)) out.push(`Maar één klankgat, aan de ${H[0].side>0?'diskant':'bas'}kant: gespiegeld was er geen vrije plek.`);
+  else { out.push(LG('Tip: sleep een klankgat op de tekening naar waar je het wilt.','Tip: drag a sound hole on the drawing to where you want it.')); if(H.some(h=>h.single)) out.push(`Maar één klankgat, aan de ${H[0].side>0?'diskant':'bas'}kant: gespiegeld was er geen vrije plek.`);
     else if(s.sh.pos==='offset'&&H.length===2) out.push('Verspringend: baskant hoger, diskantkant lager.');
     if(H.some(h=>h.far)) out.push('In die zone stond iets in de weg, dus staat het op de dichtstbijzijnde vrije plek.');
     if(k<0.999) out.push(`Kleiner gemaakt tot ${fmt(Math.min(...H.map(h=>h.L)),0)} mm om te passen.`); }
+  if(s.sh.type==='morse'){ const mn=morseLen(s.sh.text,s.sh); if((s.sh.size||150)<mn-1) { const t=String(s.sh.text||'SCG').toUpperCase(); out.push(LG(`'${t}' in morse is minstens ${fmt(mn,0)} mm lang: punten en strepen 6 mm breed, 5,5 mm hout ertussen, zo is het te frezen. Een kortere tekst of minder ruimte ertussen maakt het korter.`,`'${t}' in Morse is at least ${fmt(mn,0)} mm long: dots and dashes 6 mm wide, 5.5 mm of wood between them, so it can be routed. A shorter text or less space between makes it shorter.`)); } }
   if(s.sh.flow==='full') out.push('Volgt de lijn van de body op die plek, als een offset van de rand. De kanteling geldt t.o.v. de rand.'); else if(s.sh.flow==='half') out.push('Buigt half mee met de lijn van de body.');
   out.push(s.inside&&s.inside!=='solid'?'De knoppen wijken voor de klankgaten.':'Zonder kamers staan ze waar de kamers bij semi-hollow zouden zitten.');
   return out.join(' '); }
@@ -2479,7 +2485,7 @@ const TOG_IC={g:'<svg viewBox="0 0 24 24"><rect x="10.5" y="1" width="3" height=
   r:'<svg viewBox="0 0 24 24"><rect x="1" y="10.5" width="3" height="3" rx="1"/><rect x="3" y="11.2" width="10" height="1.6"/><circle cx="14.6" cy="12" r="3.6"/><circle cx="19" cy="12" r="4.4"/></svg>',
   l:'<svg viewBox="0 0 24 24"><g transform="translate(24 0) scale(-1 1)"><rect x="1" y="10.5" width="3" height="3" rx="1"/><rect x="3" y="11.2" width="10" height="1.6"/><circle cx="14.6" cy="12" r="3.6"/><circle cx="19" cy="12" r="4.4"/></g></svg>'};
 function togHTML(attr,opts,cur){ return `<div class="tog" role="group">${opts.map(([k,n,v])=>`<button type="button" ${attr}="${v}" class="${cur===k?'on':''}" aria-pressed="${cur===k}">${TOG_IC[k]}${n}</button>`).join('')}</div>`; }
-function bouwHTML(){ const ins=k=>`<svg viewBox="0 0 60 50"><path d="M4 12H56V38H4Z" fill="#f4efe7" stroke="#6b6257"/>${k==='semi'?'<path d="M10 16H22V34H10ZM38 16H50V34H38Z" fill="#fff" stroke="#6b6257"/>':''}</svg>`;
+function bouwHTML(){ const ins=k=>`<svg viewBox="0 0 60 50"><path d="M4 12H56V38H4Z" fill="#f4efe7" stroke="#6b6257"/>${k==='semi'?'<path d="M10 16H22V34H10ZM38 16H50V34H38Z" fill="#fff" stroke="#6b6257"/>':k==='light'?'<path d="M10 16H22V34H10ZM38 16H50V34H38Z" fill="#fff" stroke="#6b6257" stroke-dasharray="3 2"/><path d="M4 12H56" stroke="#6b6257" stroke-width="2.5"/>':''}</svg>`;
   return `<section><h2>Hout en kamers</h2><p class="hint">Voor het gewicht en de balans. De kamers worden getekend en gaan mee in het freesplan.</p><div class="ideas bouw">${Object.entries(INSIDES).map(([k,v])=>`<button class="idea" data-act="inside" data-k="${k}" title="${v[1]}">${ins(k)}${v[0]}</button>`).join('')}</div>
     <p class="hint" style="margin:8px 0 4px"><b>Dikte</b> (ruwe keuze, daaronder fijn bij te stellen)</p>${thickHTML()}<div style="margin-top:8px">${num('set.thick','Dikte')}${sel_('set.wood','Bodyhout',SIXTO_WOOD(WOODS,D().set.wood,['vuren','grenen','mlam','sandwich','ander']))}${num('set.dens','Eigen dichtheid','g/cm³',0.01)}${sel_('set.neckWood','Halshout (voor de lijmnaad)',SIXTO_WOOD(NECK_WOOD,D().set.neckWood,['mlam','same']))}</div></section>`; }
 // 21/11 (blinde test B10, Tom): mensuur kiezen in Forma, in woorden. Zelfde weg als 'Gekende mensuur' in de Werkbank.
@@ -2628,7 +2634,7 @@ function strapState(d){ const S=strapPins(d), f=bodyPhysics(d), dy=S.trad.y-S.id
   else out.push(S.mode==='ideal'?`Ideaal: ${fmt(dy,0)} mm onder de hoorntip, want op de tip zit maar ${fmt(S.trad.wood||0,0)} mm hout achter de schroef (min. ${STRAP_WOOD}).`:`Traditioneel op de hoorntip, met maar ${fmt(S.trad.wood||0,0)} mm hout achter de schroef. Ideaal ligt ${fmt(dy,0)} mm lager.`);
   out.push(`Onderste knop in het midden van de staart. Staand: ${f.margin>=BAL_OK?'blijft liggen':f.margin>=BAL_MID?'neigt licht naar de hals':'hals zakt'} (zwaartepunt ${fmt(f.margin,0)} mm binnen de knoppen), nut bij fret ${fmt(f.fretF,0)}.`);
   return out.join(' '); }
-const INSIDES={solid:['Massief','Geen kamers'],semi:['Semi-hollow','Rand 20 mm, middenblok 80 mm, vleugels hol']};
+const INSIDES={solid:['Massief','Geen kamers'],light:['Met kamers','Verborgen kamers onder een dichte top: rand 30 mm, middenblok 110 mm'],semi:['Semi-hollow','Rand 20 mm, middenblok 80 mm, vleugels hol']};
 const HOLLOW_SKIN=6;
 // dikte op plaats x, en hoeveel hout de kamers wegnemen: per strook gerekend
 function bodyCells(g,s){ const key=[s.thick,s.inside,s.wood,s.dens].join('|'); if(g._cK===key) return g._c;
@@ -2641,10 +2647,15 @@ function bodyCells(g,s){ const key=[s.thick,s.inside,s.wood,s.dens].join('|'); i
   g._cK=key; g._c={m,x:m?mx/m:0,y:m?my/m:0,solid}; return g._c; }
 function inHollow(poly,x,y,rim){ for(const dy of [-rim,rim]){ const xs=hits(poly,y+dy); let inn=false; for(let i=0;i+1<xs.length;i+=2) if(x>xs[i]&&x<xs[i+1]) inn=true; if(!inn) return false; } return true; }
 // de kamers als vlakken, om te tekenen en te frezen
+// 24/11: kortste afstand tot de rand, zodat de wand ook aan schuine randen (hoorns, cutaways) de volle breedte houdt
+function polyDist(poly,x,y){ let m=1e9; for(let i=0;i<poly.length;i++){ const a=poly[i],b=poly[(i+1)%poly.length],dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/(dx*dx+dy*dy||1))); m=Math.min(m,Math.hypot(a.x+t*dx-x,a.y+t*dy-y)); } return m; }
 function chamberPolys(d){ const s=d.set; if(s.inside==='solid'||!s.inside) return []; const g=geom(d), rim=s.inside==='semi'?20:30, sp=s.inside==='semi'?40:55, out=[];
-  [1,-1].forEach(side=>{ const a=[],b=[]; for(let y=g.minY+rim;y<g.maxY-rim;y+=5){ const xs=hits(g.poly,y); if(xs.length<2) continue; const edge=side>0?xs[xs.length-1]-rim:-xs[0]-rim; if(edge<=sp+8) continue;
-      const lim=[edge,sp].map(v=>v); let e=lim[0]; while(e>sp+8&&!inHollow(g.poly,side*e,y,rim)) e-=3; if(e<=sp+8) continue; if(!inHollow(g.poly,side*(sp+1),y,rim)) continue; a.push({x:side*e,y}); b.unshift({x:side*sp,y}); }
-    if(a.length>2) out.push(a.concat(b)); });
+  // 24/11: een onderbroken rij sluit de kamer af (geen rechte brug over de taille of een cutaway)
+  [1,-1].forEach(side=>{ let a=[],b=[]; const segOK=(p,q)=>[0.2,0.4,0.6,0.8].every(f=>polyDist(g.poly,p.x+(q.x-p.x)*f,p.y+(q.y-p.y)*f)>=rim-0.5);
+    const close=()=>{ while(a.length>=6&&!segOK(a[a.length-1],b[0])){ a.pop(); b.shift(); } while(a.length>=6&&!segOK(a[0],b[b.length-1])){ a.shift(); b.pop(); } if(a.length>=6){ const c=a.concat(b); let A=0; for(let i=0;i<c.length;i++){ const p=c[i],q=c[(i+1)%c.length]; A+=p.x*q.y-q.x*p.y; } if(Math.abs(A)/2>=2500) out.push(c); } a=[]; b=[]; };   // kleiner dan ± 5 x 5 cm frees je niet
+    for(let y=g.minY+rim;y<g.maxY-rim;y+=5){ const xs=hits(g.poly,y); if(xs.length<2){ close(); continue; } const edge=side>0?xs[xs.length-1]-rim:-xs[0]-rim; if(edge<=sp+8){ close(); continue; }
+      let e=edge; while(e>sp+8&&(!inHollow(g.poly,side*e,y,rim)||polyDist(g.poly,side*e,y)<rim||(a.length&&!segOK(a[a.length-1],{x:side*e,y})))) e-=1; if(e<=sp+8||!inHollow(g.poly,side*(sp+1),y,rim)||polyDist(g.poly,side*sp,y)<rim){ close(); continue; } a.push({x:side*e,y}); b.unshift({x:side*sp,y}); }
+    close(); });
   return out; }
 function seatInfo(g,C){ const S=[]; for(let y=g.minY+6;y<g.maxY-4;y+=4){ const xs=hits(g.poly,y); if(xs.length>=2&&xs[xs.length-1]>0) S.push({y,x:xs[xs.length-1]}); }
   if(!S.length) return {depth:0,lever:999,y:0}; let iL=0; S.forEach((p,i)=>{ if(p.x>S[iL].x) iL=i; }); if(iL>S.length*0.7) iL=S.slice(0,Math.floor(S.length*0.5)).reduce((b,p,i,A)=>p.x>A[b].x?i:b,0);
@@ -3027,6 +3038,12 @@ svg.addEventListener('pointerdown',e=>{
       if (ii>=0){ pushUndo(); const it=its[ii]; drag={kind:'item',i:ii,last:{x:it.x,y:it.y},bad:!!itemReason(ctx,its,ii,it)}; return; }
       const pu=ctx.pus.find(p=>rectDist(w,p.route)<3/view.s);
       if (pu){ pushUndo(); drag={kind:'pu',k:pu.k,lastY:d.set[pu.k].d,bad:!!puReason(ctx,pu.k)}; return; }
+      // 24/11 (Tom: klankgaten plaatsen moet vlotter): sleep een klankgat waar je het wilt; het andere gaat gespiegeld mee
+      const H=d.set.sh&&d.set.sh.type!=='none'?holePolys(d):[], m=4/Math.min(view.s,1);
+      const hh=H.find(h=>{ const xs=h.ring.map(p=>p.x), ys=h.ring.map(p=>p.y); return w.x>Math.min(...xs)-m&&w.x<Math.max(...xs)+m&&w.y>Math.min(...ys)-m&&w.y<Math.max(...ys)+m; });
+      if (hh){ pushUndo(); const sh=d.set.sh, cx=hh.ring.reduce((a,p)=>a+p.x,0)/hh.ring.length, cy=hh.ring.reduce((a,p)=>a+p.y,0)/hh.ring.length;
+        if(sh.pos!=='free'){ sh.pos='free'; sh.fx=Math.round(Math.abs(cx)); sh.fy=Math.round(cy); }
+        drag={kind:'sh',side:hh.side,off:{x:w.x-hh.side*sh.fx,y:w.y-sh.fy}}; panelKey=''; return; }
     }
     if (d.type==='headstock'){
       const g=geom(d), pi=d.posts.findIndex(p=>near(p.x,p.y,d.set.holeD/2*view.s+6));
@@ -3099,6 +3116,7 @@ svg.addEventListener('pointermove',e=>{
     p.d=Math.round(np.y*2)/2; drag.lastY=p.d; if (ok({y:p.d})) drag.bad=false;
     update(true); return;
   }
+  if (drag.kind==='sh'){ const sh=d.set.sh; sh.fx=Math.max(0,Math.round(drag.side*(w.x-drag.off.x))); sh.fy=Math.round(w.y-drag.off.y); update(true); return; }
   if (drag.kind==='post'){
     const g=geom(d), p=d.posts[drag.i], cand={x:snapV(w.x),y:snapV(w.y)}, ok=q=>!postReason(d,g,drag.i,q);
     const np = drag.bad ? cand : constrain(drag.last,cand,ok);
@@ -4377,7 +4395,7 @@ function templateShapes(o){ const b=D().type==='body'?D():lib.designs.find(x=>x.
     if(o.plate) CG.forEach((c,i)=>{ const pl=c.ring(0.3); out.push({key:'coverplate'+(CG.length>1?i+1:''),name:b.name,outer:ccw(mirX(pl)),holes:c.screws.map(q=>cw(mirX(circRing(q.x,q.y,1.6,24)))),note:'Rugkant: zo bekeken van achteren. Om de plaat uit te zagen; 0,3 mm kleiner rondom dan de sponning.'}); });
     if(o.pg&&s.pg.style!=='none'&&s.pg.pts){ const pgG=geom(pgObj(b)), hs=pgScrews(b,pgG).map(q=>circRing(q.x,q.y,1.6,24)); (s.ctrl.items||[]).forEach(it=>{ if(inside(pgG.poly,it)&&!(it.t==='jack'&&s.ctrl.jack==='side')) hs.push(circRing(it.x,it.y,it.t==='jack'?11:4.75,32)); }); ctx.pus.forEach(p=>{ if(inside(pgG.poly,{x:0,y:p.route.cy})) hs.push(rectRing(p.cover)); });
       out.push({key:'pickguard',name:b.name,outer:ccw(simplifyRing(pgG.poly.map(p=>({x:p.x,y:p.y})),0.03)),holes:hs.map(cw),note:'Voorkant. Om de pickguard uit te zagen en de schroefgaten te zetten.'}); }
-    if(o.cham&&s.inside&&s.inside!=='solid'){ const ch=chamberPolys(b); if(ch.length) out.push({key:'kamers',name:b.name,outer:ccw(poly),holes:ch.map(c=>cw(simplifyRing(c,0.03))).concat([circRing(0.01,ctx.topY-25,1.5,24),circRing(0.01,botOf(g)+25,1.5,24)]),note:`Voorkant (kamers vóór de top erop gaat). Rand 20 mm, middenblok 80 mm.`}); }
+    if(o.cham&&s.inside&&s.inside!=='solid'){ const ch=chamberPolys(b); if(ch.length) out.push({key:'kamers',name:b.name,outer:ccw(poly),holes:ch.map(c=>cw(simplifyRing(c,0.03))).concat([circRing(0.01,ctx.topY-25,1.5,24),circRing(0.01,botOf(g)+25,1.5,24)]),note:s.inside==='light'?`Voorkant (kamers vóór de top erop gaat). Rand 30 mm, middenblok 110 mm, kamers ± 55 % van de dikte.`:`Voorkant (kamers vóór de top erop gaat). Rand 20 mm, middenblok 80 mm.`}); }
     if(o.neck){ const yN=s.scale, yE=ctx.pocketEnd, yL=fretY(s,s.frets), W=y=>neckHW(s,y), N=24, L=[], R=[]; for(let k=0;k<=N;k++){ const y=yE+(yN-yE)*k/N; R.push({x:W(y),y}); L.unshift({x:-W(y),y}); }
       const ring=R.concat(L).map(p=>({x:p.x,y:p.y-yN})); out.push({key:'hals',name:b.name,outer:ccw(ring),holes:[circRing(0.01,-15,1.5,24),circRing(0.01,yE-yN+15,1.5,24)],note:`Halsomtrek van de nut (boven) tot het einde van de hiel: ${fmt(yN-yE,0)} mm lang, ${fmt(s.nutW,1)} mm aan de nut, ${fmt(2*neckHW(s,yE),1)} mm aan het einde van de hiel (zelfde taper als de hals). Zonder kop: die heeft een eigen mal.`}); }
   }
@@ -4410,7 +4428,7 @@ function printPreview(P){ let all=[]; P.res.forEach(r=>(r.parts||[]).forEach(p=>
 let prtZip=null;
 function openPrint(){ const o=prOpt(); prtZip=null; const P=buildPrint(); let info='';
   P.res.forEach(r=>{ info+= r.err?`<p><b>${r.key}</b>: ${r.err}</p>`:`<p><b>${MAL_INFO[r.key.replace(/\d+$/,'')]||r.key}${/\d$/.test(r.key)?' '+r.key.slice(-1):''}</b> · ${esc(r.name)}: ${r.parts.length} ${r.parts.length>1?'stukken':'stuk'}${r.parts.length>1?` (${r.nx}×${r.ny})`:''}, grootste stuk ${fmt(Math.max(...r.parts.map(p=>Math.max(p.w,p.h))),0)} mm${r.parts.some(p=>Math.abs(ringArea(p.outer))<400)?' · <span style="color:#b5541c">let op: een heel klein stukje</span>':''}</p>`; });
-  const b=D().type==='body'?D():lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'), bs=b&&b.set, hasCG=b&&coverGroups(b).length, hasPg=bs&&bs.pg.style!=='none'&&bs.pg.pts, semi=bs&&bs.inside==='semi', hd=templateShapes({...o,body:false,head:true,fPus:0,fPocket:0,fCav:0,fReb:0,plate:0,pg:0,cham:0,neck:0})[0];
+  const b=D().type==='body'?D():lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'), bs=b&&b.set, hasCG=b&&coverGroups(b).length, hasPg=bs&&bs.pg.style!=='none'&&bs.pg.pts, semi=bs&&['semi','light'].includes(bs.inside), hd=templateShapes({...o,body:false,head:true,fPus:0,fPocket:0,fCav:0,fReb:0,plate:0,pg:0,cham:0,neck:0})[0];
   const num=(k,l,u,st)=>`<div class="row"><label>${l}</label><input type="number" data-p-in="${k}" value="${o[k]}" step="${st||1}"><span class="u">${u}</span></div>`, ck=(k,l)=>`<div class="row"><label><input type="checkbox" data-p-in="${k}" ${o[k]?'checked':''}> ${l}</label></div>`;
   MB.innerHTML=`<div class="mhead"><h2>🖨 3D-print mallen</h2><button data-m="close">✕</button></div>
   <div class="rnd"><div class="rimg" style="background:#faf7f2">${printPreview(P)}</div><div class="ropt">${info}
@@ -4421,7 +4439,7 @@ function openPrint(){ const o=prOpt(); prtZip=null; const P=buildPrint(); let in
   ${hd?ck('head','Kop ('+esc(hd.name)+')'):''}${hd&&o.head?`<div style="margin-left:22px">${ck('tuners','Mechaniekgaten')}</div>`:''}
   ${b?ck('fPus','Pickupfrezingen (los raam)')+ck('fPocket','Halsvak (los raam)'):''}
   ${hasCG?ck('fCav','Elektronicavak, rug (raam)')+ck('fReb','Sponning cover plate, rug (raam)')+ck('plate','Cover plate (om uit te zagen)'):''}
-  ${hasPg?ck('pg','Pickguard (om uit te zagen)'):''}${semi?ck('cham','Kamers semi-hollow (body-omtrek met de kamers)'):''}${b?ck('neck','Halsomtrek (nut tot hiel)'):''}
+  ${hasPg?ck('pg','Pickguard (om uit te zagen)'):''}${semi?ck('cham',bs.inside==='light'?'Kamers (body-omtrek met de kamers)':'Kamers semi-hollow (body-omtrek met de kamers)'):''}${b?ck('neck','Halsomtrek (nut tot hiel)'):''}
   <p class="hint" style="margin:8px 0 4px"><b>Printer</b></p>
   ${num('t','Dikte van de mal','mm',0.5)}${num('bx','Bed breed','mm')}${num('by','Bed diep','mm')}${num('margin','Marge op het bed','mm')}${num('gap','Speling per kant','mm',0.05)}
   
@@ -4431,7 +4449,7 @@ function openPrint(){ const o=prOpt(); prtZip=null; const P=buildPrint(); let in
 MB.addEventListener('change',e=>{ const k=e.target.dataset.pIn; if(!k) return; const o=lib.view.prt||(lib.view.prt={}); o[k]=e.target.type==='checkbox'?e.target.checked:parseFloat(e.target.value); if(e.target.type!=='checkbox'&&!isFinite(o[k])) delete o[k]; save(); openPrint(); });
 function printAct(a){
   if(a==='all'||a==='few'){ const b=D().type==='body'?D():lib.designs.find(x=>x.id===lib.active.body&&x.type==='body'), on=a==='all', bs=b&&b.set;
-    lib.view.prt=Object.assign(lib.view.prt||{},{body:true,head:true,center:true,tuners:true,sh:true,pus:false,pocket:false,fPus:on,fPocket:on,fCav:on&&!!(b&&coverGroups(b).length),fReb:on&&!!(b&&coverGroups(b).length),plate:on&&!!(b&&coverGroups(b).length),pg:on&&!!(bs&&bs.pg.style!=='none'&&bs.pg.pts),cham:on&&!!(bs&&bs.inside==='semi'),neck:on});
+    lib.view.prt=Object.assign(lib.view.prt||{},{body:true,head:true,center:true,tuners:true,sh:true,pus:false,pocket:false,fPus:on,fPocket:on,fCav:on&&!!(b&&coverGroups(b).length),fReb:on&&!!(b&&coverGroups(b).length),plate:on&&!!(b&&coverGroups(b).length),pg:on&&!!(bs&&bs.pg.style!=='none'&&bs.pg.pts),cham:on&&!!(bs&&['semi','light'].includes(bs.inside)),neck:on});
     save(); openPrint(); return; }
   if(a==='make'){ const msg=$('#prtMsg'); try{ const P=prt||buildPrint(), files=[], o=P.o; let n=0;
       P.res.forEach(r=>(r.parts||[]).forEach(p=>{ const bb=ringBox(p.outer), sh=q=>q.map(v=>({x:v.x-bb.x0,y:v.y-bb.y0})), part={outer:sh(p.outer),holes:p.holes.map(sh)}; const nm=`${r.key}${p.label?'_'+p.label:''}.stl`; files.push({name:nm,data:stlBin(extrude(part,o.t),nm)}); n++; }));
